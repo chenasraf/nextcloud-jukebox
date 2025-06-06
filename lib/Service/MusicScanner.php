@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace OCA\Jukebox\Service;
 
 use getID3;
+use OCA\Jukebox\AppInfo\Application;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
-use OCP\IUser;
+use OCP\IAppConfig;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
@@ -22,37 +23,55 @@ class MusicScanner {
 	private IRootFolder $rootFolder;
 	private IUserSession $userSession;
 
-	/**
-	 * @param IRootFolder $rootFolder
-	 * @param IUserSession $userSession
-	 * @param LoggerInterface $logger
-	 */
 	public function __construct(
 		IRootFolder $rootFolder,
 		IUserSession $userSession,
 		private LoggerInterface $logger,
+		private IAppConfig $appConfig,
 	) {
 		$this->rootFolder = $rootFolder;
 		$this->userSession = $userSession;
 	}
 
 	/**
-	 * Starts scanning the authenticated user's folder for music files.
+	 * Starts scanning the user's configured music directory for audio files.
 	 *
 	 * @return void
 	 */
+
 	public function scanMusicFiles(): void {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
-			// Handle unauthenticated user
+			$this->logger->warning('Music scan aborted: no user session.');
 			return;
 		}
 
+		$this->scanUserByUID($user->getUID());
+	}
+
+	/**
+	 * Scans the music directory for a specific user by UID.
+	 *
+	 * @param string $uid
+	 * @return void
+	 */
+	public function scanUserByUID(string $uid): void {
 		try {
-			$userFolder = $this->rootFolder->getUserFolder($user->getUID());
-			$this->traverseFolder($userFolder, $user);
+			$userFolder = $this->rootFolder->getUserFolder($uid);
+
+			$relativePath = $this->appConfig->getValueString(Application::APP_ID, 'music_folder_path_' . $uid, 'Music');
+
+			/** @var Folder $musicFolder */
+			$musicFolder = $userFolder->get($relativePath);
+			if (!($musicFolder instanceof Folder)) {
+				$this->logger->warning("Configured music path '$relativePath' for user $uid is not a folder.");
+				return;
+			}
+
+			$this->logger->info("Starting music scan for user '$uid' in folder '$relativePath'");
+			$this->traverseFolder($musicFolder, $uid);
 		} catch (NotFoundException $e) {
-			// Handle folder not found
+			$this->logger->error("Could not find music folder for user $uid: " . $e->getMessage());
 		}
 	}
 
@@ -60,18 +79,21 @@ class MusicScanner {
 	 * Recursively traverses a folder and processes audio files.
 	 *
 	 * @param Folder $folder
-	 * @param IUser $user
+	 * @param string $uid
 	 * @return void
 	 */
-	private function traverseFolder(Folder $folder, IUser $user): void {
+	private function traverseFolder(Folder $folder, string $uid): void {
+		$this->logger->info('Scanning folder: ' . $folder->getPath());
+
 		foreach ($folder->getDirectoryListing() as $node) {
 			if ($node instanceof File) {
 				$mimeType = $node->getMimeType();
 				if (str_starts_with($mimeType, 'audio/')) {
-					$this->processAudioFile($node, $user);
+					$this->logger->info('Found audio file: ' . $node->getPath() . " (MIME: $mimeType)");
+					$this->processAudioFile($node, $uid);
 				}
 			} elseif ($node instanceof Folder) {
-				$this->traverseFolder($node, $user);
+				$this->traverseFolder($node, $uid);
 			}
 		}
 	}
@@ -80,24 +102,28 @@ class MusicScanner {
 	 * Downloads an audio file, reads metadata, and processes it.
 	 *
 	 * @param File $file
-	 * @param IUser $user
+	 * @param string $uid
 	 * @return void
 	 */
-	private function processAudioFile(File $file, IUser $user): void {
+	private function processAudioFile(File $file, string $uid): void {
+		$this->logger->info('Processing audio file: ' . $file->getPath());
+
 		$tempPath = tempnam(sys_get_temp_dir(), 'jukebox_');
 		if ($tempPath === false) {
 			$this->logger->error('Could not create temporary file for audio processing.');
-			return; // Could not create temp file
+			return;
 		}
 
 		$handle = fopen($tempPath, 'w');
 		if ($handle === false) {
+			$this->logger->error('Failed to open temporary file handle.');
 			return;
 		}
 
 		$stream = $file->fopen('r');
 		if ($stream === false) {
 			fclose($handle);
+			$this->logger->error('Failed to open file stream for ' . $file->getPath());
 			return;
 		}
 
@@ -108,16 +134,23 @@ class MusicScanner {
 		$getID3 = new getID3();
 		$info = $getID3->analyze($tempPath);
 
-		$artist = $info['tags']['id3v2']['artist'][0] ?? '';
+		$songArtist = $info['tags']['id3v2']['artist'][0] ?? '';
+		$albumArtist =
+			$info['tags']['id3v2']['band'][0] ??
+			$info['tags']['id3v2']['album_artist'][0] ??
+			$info['tags']['quicktime']['album_artist'][0] ??
+			$info['tags']['asf']['WM/AlbumArtist'][0] ??
+			'';
 		$album = $info['tags']['id3v2']['album'][0] ?? '';
 		$title = $info['tags']['id3v2']['title'][0] ?? $file->getName();
 
-		// Clean up temp file
+		$this->logger->info("Scanned metadata for '{$file->getPath()}': Song Artist='{$songArtist}', Album Artist='{$albumArtist}', Album='{$album}', Title='{$title}'");
+
 		unlink($tempPath);
 
-		// Stub: Save metadata to DB
-		$this->saveMetadataToDatabase($user->getUID(), $file->getId(), $artist, $album, $title);
+		$this->saveMetadataToDatabase($uid, $file->getId(), $songArtist, $album, $title);
 	}
+
 
 	/**
 	 * Placeholder method to save music metadata.

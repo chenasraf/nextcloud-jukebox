@@ -15,8 +15,15 @@ export default createAppConfig(
         cssCodeSplit: false,
         rollupOptions: {
           output: {
-            manualChunks: {
-              vendor: ['vue', 'vue-router'],
+            manualChunks(id) {
+              if (id.includes('node_modules')) {
+                if (id.includes('@nextcloud/dialogs')) return 'nextcloud-dialogs'
+                if (id.includes('@nextcloud/vue')) return 'nextcloud-vue'
+                if (id.includes('vue')) return 'vue'
+                if (id.includes('vue-router')) return 'vue-router'
+                if (id.includes('axios')) return 'axios'
+                return 'vendor' // fallback for other deps
+              }
             },
           },
         },

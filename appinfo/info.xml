@@ -47,7 +47,10 @@ It supports music files, podcasts (with gPodder sync), audiobooks, YouTube video
 		<job>OCA\Jukebox\Cron\FetchCurrenciesJob</job>
 	</background-jobs> -->
 	<settings>
-		<admin>OCA\Jukebox\Settings\CurrencyAdmin</admin>
-		<admin-section>OCA\Jukebox\Sections\CurrencyAdmin</admin-section>
+		<personal>OCA\Jukebox\Settings\JukeboxUserSettings</personal>
+		<personal-section>OCA\Jukebox\Sections\JukeboxUserSection</personal-section>
 	</settings>
+	<commands>
+		<command>OCA\Jukebox\Command\ScanMusic</command>
+	</commands>
 </info>
