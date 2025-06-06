@@ -1,0 +1,277 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "jukebox",
+    "version": "0.0.1",
+    "description": "Automatically fills the currency rates for your Cospend projects daily.",
+    "license": {
+      "name": "agpl"
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "basic_auth": {
+        "type": "http",
+        "scheme": "basic"
+      },
+      "bearer_auth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "OCSMeta": {
+        "type": "object",
+        "required": ["status", "statuscode"],
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "statuscode": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "totalitems": {
+            "type": "string"
+          },
+          "itemsperpage": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/ocs/v2.php/apps/jukebox/api/cron": {
+      "get": {
+        "operationId": "api-get-cron-info",
+        "summary": "Get current cron information",
+        "description": "This endpoint requires admin access",
+        "tags": ["api"],
+        "security": [
+          {
+            "bearer_auth": []
+          },
+          {
+            "basic_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "OCS-APIRequest",
+            "in": "header",
+            "description": "Required to be true for the API request to pass",
+            "required": true,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["ocs"],
+                  "properties": {
+                    "ocs": {
+                      "type": "object",
+                      "required": ["meta", "data"],
+                      "properties": {
+                        "meta": {
+                          "$ref": "#/components/schemas/OCSMeta"
+                        },
+                        "data": {
+                          "type": "object",
+                          "required": ["last_update", "interval", "supported_currencies"],
+                          "properties": {
+                            "last_update": {
+                              "type": "string",
+                              "nullable": true,
+                              "minLength": 1
+                            },
+                            "interval": {
+                              "type": "integer",
+                              "format": "int64"
+                            },
+                            "supported_currencies": {
+                              "type": "object",
+                              "required": ["code", "symbol", "name"],
+                              "properties": {
+                                "code": {
+                                  "type": "string"
+                                },
+                                "symbol": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "api-update-settings",
+        "summary": "Update auto currency settings",
+        "description": "This endpoint requires admin access",
+        "tags": ["api"],
+        "security": [
+          {
+            "bearer_auth": []
+          },
+          {
+            "basic_auth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "description": "Data to update",
+                    "required": ["interval"],
+                    "properties": {
+                      "interval": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "OCS-APIRequest",
+            "in": "header",
+            "description": "Required to be true for the API request to pass",
+            "required": true,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["ocs"],
+                  "properties": {
+                    "ocs": {
+                      "type": "object",
+                      "required": ["meta", "data"],
+                      "properties": {
+                        "meta": {
+                          "$ref": "#/components/schemas/OCSMeta"
+                        },
+                        "data": {
+                          "type": "object",
+                          "required": ["status"],
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ocs/v2.php/apps/jukebox/api/cron/run": {
+      "post": {
+        "operationId": "api-run-cron",
+        "summary": "Run cron immediately",
+        "description": "This endpoint requires admin access",
+        "tags": ["api"],
+        "security": [
+          {
+            "bearer_auth": []
+          },
+          {
+            "basic_auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "OCS-APIRequest",
+            "in": "header",
+            "description": "Required to be true for the API request to pass",
+            "required": true,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["ocs"],
+                  "properties": {
+                    "ocs": {
+                      "type": "object",
+                      "required": ["meta", "data"],
+                      "properties": {
+                        "meta": {
+                          "$ref": "#/components/schemas/OCSMeta"
+                        },
+                        "data": {
+                          "type": "object",
+                          "required": ["status"],
+                          "properties": {
+                            "status": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}

@@ -1,0 +1,42 @@
+<?php
+
+declare(strict_types=1);
+
+// SPDX-FileCopyrightText: Chen Asraf <contact@casraf.dev>
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+namespace OCA\Jukebox\Controller;
+
+use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\ApiRoute;
+use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\OCSController;
+use OCP\IAppConfig;
+use OCP\IL10N;
+use OCP\IRequest;
+
+class {{pascalCase name}}Controller extends OCSController {
+	/**
+	 * {{pascalCase name}} constructor.
+	 */
+	public function __construct(
+		string $appName,
+		IRequest $request,
+		private IAppConfig $config,
+		private IL10N $l,
+	) {
+		parent::__construct($appName, $request);
+	}
+
+	/**
+	 * API index
+	 *
+	 * @return JSONResponse<Http::STATUS_OK, array{}, array{}>
+	 *
+	 * 200: Data returned
+	 */
+	#[ApiRoute(verb: 'GET', url: '/{{kebabCase name}}')]
+	public function index(): JSONResponse {
+		return new JSONResponse();
+	}
+}

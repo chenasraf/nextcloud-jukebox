@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+	<!--
+		SPDX-FileCopyrightText: Chen Asraf <contact@casraf.dev>
+		SPDX-License-Identifier: CC0-1.0
+	-->
+	<id>jukebox</id>
+	<name>Jukebox</name>
+	<summary>Automatically fills the currency rates for your Cospend projects daily.</summary>
+	<description><![CDATA[**Jukebox** is a Nextcloud app for streaming and organizing all your audio content in one place.
+It supports music files, podcasts (with gPodder sync), audiobooks, YouTube videos, and online radio.
+
+## Features
+
+- 🎵 Play local music files
+- 🎙️ Sync and stream podcasts using [gPodder](https://gpodder.net/)
+- 📚 Listen to audiobooks with resume support
+- 📺 Embed and play YouTube videos
+- 📻 Tune in to online radio streams
+]]></description>
+	<version>0.1.0</version>
+	<licence>agpl</licence>
+	<author mail="contact@casraf.dev" homepage="https://casraf.dev">Chen Asraf</author>
+	<namespace>Jukebox</namespace>
+	<documentation>
+		<user>https://github.com/chenasraf/nextcloud-jukebox/blob/master/README.md</user>
+		<admin>https://github.com/chenasraf/nextcloud-jukebox#installation</admin>
+		<developer>https://github.com/chenasraf/nextcloud-jukebox#development</developer>
+	</documentation>
+	<category>organization</category>
+	<category>tools</category>
+	<website>https://github.com/chenasraf/nextcloud-jukebox</website>
+	<bugs>https://github.com/chenasraf/nextcloud-jukebox/issues</bugs>
+	<donation>https://ko-fi.com/casraf</donation>
+	<dependencies>
+		<nextcloud min-version="29" max-version="31"/>
+	</dependencies>
+	<navigations>
+		<navigation role="all">
+			<name>Jukebox</name>
+			<route>jukebox.page.index</route>
+			<icon>app.svg</icon>
+			<order>6</order>
+		</navigation>
+	</navigations>
+	<!-- <background-jobs>
+		<job>OCA\Jukebox\Cron\FetchCurrenciesJob</job>
+	</background-jobs> -->
+	<settings>
+		<admin>OCA\Jukebox\Settings\CurrencyAdmin</admin>
+		<admin-section>OCA\Jukebox\Sections\CurrencyAdmin</admin-section>
+	</settings>
+</info>
