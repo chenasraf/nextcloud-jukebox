@@ -6,7 +6,7 @@
 	-->
 	<id>jukebox</id>
 	<name>Jukebox</name>
-	<summary>Automatically fills the currency rates for your Cospend projects daily.</summary>
+	<summary>Stream and organize all your audio content in one place.</summary>
 	<description><![CDATA[**Jukebox** is a Nextcloud app for streaming and organizing all your audio content in one place.
 It supports music files, podcasts (with gPodder sync), audiobooks, YouTube videos, and online radio.
 

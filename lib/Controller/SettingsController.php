@@ -34,7 +34,7 @@ class SettingsController extends OCSController {
 	/**
 	 * Save user-specific settings
 	 *
-	 * @param array<string, mixed> $data
+	 * @param array<string, mixed> $data Data to save
 	 * @return DataResponse<Http::STATUS_OK, array{status: non-empty-string}, array{}>
 	 *
 	 * 200: Settings saved

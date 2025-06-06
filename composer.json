@@ -1,6 +1,6 @@
 {
   "name": "nextcloud/jukebox",
-  "description": "Automatically fills the currency rates for your Cospend projects daily.",
+  "description": "Stream and organize all your audio content in one place.",
   "license": "AGPL-3.0-or-later",
   "authors": [
     {
