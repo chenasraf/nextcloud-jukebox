@@ -6,7 +6,7 @@ const { format } = require('date-fns')
 const fs = require('node:fs')
 
 function getLatestMigration() {
-  const migrationDir = 'lib/migration'
+  const migrationDir = 'lib/Migration'
   const files = fs.readdirSync(migrationDir)
   const migrationFiles = files.sort((a, b) => a.localeCompare(b))
   const latestMigration = migrationFiles[migrationFiles.length - 1]
@@ -17,6 +17,7 @@ function getLatestMigration() {
 
 // eslint-disable-next-line no-undef
 module.exports = () => {
+  const latestMigrationVersion = getLatestMigration()
   return {
     component: {
       templates: ['gen/component'],
@@ -63,17 +64,14 @@ module.exports = () => {
       output: 'lib/Controller',
       subDir: false,
     },
-    migration: () => {
-      const latestMigrationVersion = getLatestMigration()
-      return {
-        templates: ['gen/migration'],
-        output: 'lib/Migration',
-        name: '-',
-        data: {
-          version: latestMigrationVersion,
-          dt: format(new Date(), 'yyyyMMddHHmmss'),
-        },
-      }
+    migration: {
+      templates: ['gen/migration'],
+      output: 'lib/Migration',
+      name: '-',
+      data: {
+        version: latestMigrationVersion,
+        dt: format(new Date(), 'yyyyMMddHHmmss'),
+      },
     },
   }
 }

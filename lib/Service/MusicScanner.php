@@ -6,11 +6,14 @@ namespace OCA\Jukebox\Service;
 
 use getID3;
 use OCA\Jukebox\AppInfo\Application;
+use OCA\Jukebox\Db\JukeboxMedia;
+use OCA\Jukebox\Db\JukeboxMediaMapper;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use OCP\IAppConfig;
+use OCP\IDBConnection;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
@@ -28,6 +31,8 @@ class MusicScanner {
 		IUserSession $userSession,
 		private LoggerInterface $logger,
 		private IAppConfig $appConfig,
+		private JukeboxMediaMapper $mediaMapper,
+		private IDBConnection $db,
 	) {
 		$this->rootFolder = $rootFolder;
 		$this->userSession = $userSession;
@@ -57,6 +62,7 @@ class MusicScanner {
 	 */
 	public function scanUserByUID(string $uid): void {
 		try {
+			$this->db->beginTransaction();
 			$userFolder = $this->rootFolder->getUserFolder($uid);
 
 			$relativePath = $this->appConfig->getValueString(Application::APP_ID, 'music_folder_path_' . $uid, 'Music');
@@ -70,8 +76,12 @@ class MusicScanner {
 
 			$this->logger->info("Starting music scan for user '$uid' in folder '$relativePath'");
 			$this->traverseFolder($musicFolder, $uid);
+			$this->db->commit();
 		} catch (NotFoundException $e) {
 			$this->logger->error("Could not find music folder for user $uid: " . $e->getMessage());
+		} catch (\Throwable $e) {
+			$this->db->rollBack();
+			$this->logger->error('Scan failed: ' . $e->getMessage());
 		}
 	}
 
@@ -114,16 +124,11 @@ class MusicScanner {
 			return;
 		}
 
-		$handle = fopen($tempPath, 'w');
-		if ($handle === false) {
-			$this->logger->error('Failed to open temporary file handle.');
-			return;
-		}
-
 		$stream = $file->fopen('r');
-		if ($stream === false) {
-			fclose($handle);
-			$this->logger->error('Failed to open file stream for ' . $file->getPath());
+		$handle = fopen($tempPath, 'w');
+
+		if ($stream === false || $handle === false) {
+			$this->logger->error('Failed to open file stream or temp handle.');
 			return;
 		}
 
@@ -133,36 +138,70 @@ class MusicScanner {
 
 		$getID3 = new getID3();
 		$info = $getID3->analyze($tempPath);
-
-		$songArtist = $info['tags']['id3v2']['artist'][0] ?? '';
-		$albumArtist =
-			$info['tags']['id3v2']['band'][0] ??
-			$info['tags']['id3v2']['album_artist'][0] ??
-			$info['tags']['quicktime']['album_artist'][0] ??
-			$info['tags']['asf']['WM/AlbumArtist'][0] ??
-			'';
-		$album = $info['tags']['id3v2']['album'][0] ?? '';
-		$title = $info['tags']['id3v2']['title'][0] ?? $file->getName();
-
-		$this->logger->info("Scanned metadata for '{$file->getPath()}': Song Artist='{$songArtist}', Album Artist='{$albumArtist}', Album='{$album}', Title='{$title}'");
-
 		unlink($tempPath);
 
-		$this->saveMetadataToDatabase($uid, $file->getId(), $songArtist, $album, $title);
+		$this->saveMetadataToDatabase($uid, $file, $info);
 	}
-
 
 	/**
 	 * Placeholder method to save music metadata.
 	 *
 	 * @param string $userId
-	 * @param int $fileId
-	 * @param string $artist
-	 * @param string $album
-	 * @param string $title
+	 * @param File $fileId
+	 * @param array $info
 	 * @return void
 	 */
-	private function saveMetadataToDatabase(string $userId, int $fileId, string $artist, string $album, string $title): void {
-		// TODO: Implement database saving logic
+	private function saveMetadataToDatabase(string $userId, File $file, array $info): void {
+		try {
+			$path = $file->getPath();
+			$mtime = $file->getMTime();
+
+			$title = $info['tags']['id3v2']['title'][0]
+				?? $file->getName();
+
+			$trackArtist = $info['tags']['id3v2']['artist'][0] ?? '';
+			$albumArtist =
+				$info['tags']['id3v2']['band'][0]
+				?? $info['tags']['id3v2']['album_artist'][0]
+				?? $info['tags']['quicktime']['album_artist'][0]
+				?? $info['tags']['asf']['WM/AlbumArtist'][0]
+				?? '';
+			$album = $info['tags']['id3v2']['album'][0] ?? '';
+
+			// Check for existing
+			$existing = $this->mediaMapper->findByUserIdAndPath($userId, $path);
+			$media = $existing ?? new JukeboxMedia();
+
+			$media->setUserId($userId);
+			$media->setPath($path);
+			$media->setMtime($mtime);
+			$media->setMediaType('track');
+			$media->setTitle($title);
+			$media->setArtist($trackArtist);
+			$media->setAlbumArtist($albumArtist);
+			$media->setAlbum($album);
+
+			$media->setTrackNumber($info['tags']['id3v2']['track_number'][0] ?? null);
+			$media->setDuration((int)($info['playtime_seconds'] ?? 0));
+			$media->setGenre($info['tags']['id3v2']['genre'][0] ?? null);
+			$media->setYear((int)($info['tags']['id3v2']['year'][0] ?? 0));
+			$media->setBitrate((int)($info['audio']['bitrate'] ?? 0) / 1000);
+			$media->setCodec($info['audio']['dataformat'] ?? null);
+
+			$rawId3 = json_encode($info);
+			if ($rawId3 !== false) {
+				$media->setRawId3($rawId3);
+			}
+
+			if ($existing) {
+				$this->mediaMapper->update($media);
+			} else {
+				$this->mediaMapper->insert($media);
+			}
+
+			$this->logger->info("Saved metadata for '$path'");
+		} catch (\Throwable $e) {
+			$this->logger->error("Failed to save metadata for file '{$file->getPath()}': " . $e->getMessage());
+		}
 	}
 }
