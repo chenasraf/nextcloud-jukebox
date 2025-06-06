@@ -35,6 +35,9 @@ importers:
       vue:
         specifier: ^3.5.16
         version: 3.5.16(typescript@5.8.3)
+      vue-material-design-icons:
+        specifier: ^5.3.1
+        version: 5.3.1
     devDependencies:
       '@eslint/js':
         specifier: ^9.28.0
@@ -3738,6 +3741,9 @@ packages:
     engines: {node: ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: '>=6.0.0'
+
+  vue-material-design-icons@5.3.1:
+    resolution: {integrity: sha512-6UNEyhlTzlCeT8ZeX5WbpUGFTTPSbOoTQeoASTv7X4Ylh0pe8vltj+36VMK56KM0gG8EQVoMK/Qw/6evalg8lA==}
 
   vue-resize@2.0.0-alpha.1:
     resolution: {integrity: sha512-7+iqOueLU7uc9NrMfrzbG8hwMqchfVfSzpVlCMeJQe4pyibqyoifDNbKTZvwxZKDvGkB+PdFeKvnGZMoEb8esg==}
@@ -8068,6 +8074,8 @@ snapshots:
       semver: 7.7.2
     transitivePeerDependencies:
       - supports-color
+
+  vue-material-design-icons@5.3.1: {}
 
   vue-resize@2.0.0-alpha.1(vue@3.5.16(typescript@5.8.3)):
     dependencies:

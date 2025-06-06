@@ -187,6 +187,9 @@ class MusicScanner {
 			$media->setYear((int)($info['tags']['id3v2']['year'][0] ?? 0));
 			$media->setBitrate((int)($info['audio']['bitrate'] ?? 0) / 1000);
 			$media->setCodec($info['audio']['dataformat'] ?? null);
+			if (!empty($info['comments']['picture'][0]['data'])) {
+				$media->setAlbumArt($info['comments']['picture'][0]['data']);
+			}
 
 			$rawId3 = json_encode($info);
 			if ($rawId3 !== false) {

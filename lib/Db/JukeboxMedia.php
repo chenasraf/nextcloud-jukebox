@@ -63,6 +63,27 @@ class JukeboxMedia extends Entity implements JsonSerializable {
 	protected int $mtime = 0;
 	protected ?string $rawId3 = null;
 
+	/**
+	 * Returns the base64-encoded version of the album art blob
+	 *
+	 * @return string|null data URI like 'data:image/jpeg;base64,...' or null if no art
+	 */
+	public function getAlbumArtBase64(): ?string {
+		if ($this->albumArt === null) {
+			return null;
+		}
+
+		// Attempt to detect MIME type, fallback to jpeg
+		$mime = 'image/jpeg';
+		if (str_starts_with($this->albumArt, "\x89PNG")) {
+			$mime = 'image/png';
+		} elseif (str_starts_with($this->albumArt, 'GIF')) {
+			$mime = 'image/gif';
+		}
+
+		return 'data:' . $mime . ';base64,' . base64_encode($this->albumArt);
+	}
+
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->id,

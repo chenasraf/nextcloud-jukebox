@@ -84,9 +84,9 @@ class Version1Date20250607001010 extends SimpleMigrationStep {
 			'comment' => 'Duration in seconds',
 		]);
 
-		$table->addColumn('album_art', 'text', [
+		$table->addColumn('album_art', 'blob', [
 			'notnull' => false,
-			'comment' => 'Path or encoded blob of album artwork',
+			'comment' => 'Raw binary image data for album art',
 		]);
 
 		$table->addColumn('genre', 'string', [
