@@ -10,6 +10,11 @@ export default createAppConfig(
   {
     config: {
       root: 'src',
+      resolve: {
+        alias: {
+          '@icons': path.resolve(__dirname, 'node_modules/vue-material-design-icons'),
+        },
+      },
       build: {
         outDir: '../dist',
         cssCodeSplit: false,
