@@ -1,192 +1,213 @@
 {
-  "openapi": "3.0.3",
-  "info": {
-    "title": "jukebox",
-    "version": "0.0.1",
-    "description": "Stream and organize all your audio content in one place.",
-    "license": {
-      "name": "agpl"
-    }
-  },
-  "components": {
-    "securitySchemes": {
-      "basic_auth": {
-        "type": "http",
-        "scheme": "basic"
-      },
-      "bearer_auth": {
-        "type": "http",
-        "scheme": "bearer"
-      }
+    "openapi": "3.0.3",
+    "info": {
+        "title": "jukebox",
+        "version": "0.0.1",
+        "description": "Stream and organize all your audio content in one place.",
+        "license": {
+            "name": "agpl"
+        }
     },
-    "schemas": {
-      "OCSMeta": {
-        "type": "object",
-        "required": ["status", "statuscode"],
-        "properties": {
-          "status": {
-            "type": "string"
-          },
-          "statuscode": {
-            "type": "integer"
-          },
-          "message": {
-            "type": "string"
-          },
-          "totalitems": {
-            "type": "string"
-          },
-          "itemsperpage": {
-            "type": "string"
-          }
-        }
-      }
-    }
-  },
-  "paths": {
-    "/ocs/v2.php/apps/jukebox/api/settings": {
-      "put": {
-        "operationId": "settings-save-settings",
-        "summary": "Save user-specific settings",
-        "description": "This endpoint requires admin access",
-        "tags": ["settings"],
-        "security": [
-          {
-            "bearer_auth": []
-          },
-          {
-            "basic_auth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["data"],
-                "properties": {
-                  "data": {
-                    "type": "object",
-                    "description": "Data to save",
-                    "additionalProperties": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
+    "components": {
+        "securitySchemes": {
+            "basic_auth": {
+                "type": "http",
+                "scheme": "basic"
+            },
+            "bearer_auth": {
+                "type": "http",
+                "scheme": "bearer"
             }
-          }
         },
-        "parameters": [
-          {
-            "name": "OCS-APIRequest",
-            "in": "header",
-            "description": "Required to be true for the API request to pass",
-            "required": true,
-            "schema": {
-              "type": "boolean",
-              "default": true
+        "schemas": {
+            "OCSMeta": {
+                "type": "object",
+                "required": [
+                    "status",
+                    "statuscode"
+                ],
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    },
+                    "statuscode": {
+                        "type": "integer"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "totalitems": {
+                        "type": "string"
+                    },
+                    "itemsperpage": {
+                        "type": "string"
+                    }
+                }
             }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Settings saved",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": ["ocs"],
-                  "properties": {
-                    "ocs": {
-                      "type": "object",
-                      "required": ["meta", "data"],
-                      "properties": {
-                        "meta": {
-                          "$ref": "#/components/schemas/OCSMeta"
-                        },
-                        "data": {
-                          "type": "object",
-                          "required": ["status"],
-                          "properties": {
-                            "status": {
-                              "type": "string",
-                              "minLength": 1
+        }
+    },
+    "paths": {
+        "/ocs/v2.php/apps/jukebox/api/settings": {
+            "put": {
+                "operationId": "settings-save-settings",
+                "summary": "Save user-specific settings",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "settings"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "data"
+                                ],
+                                "properties": {
+                                    "data": {
+                                        "type": "object",
+                                        "description": "Data to save",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
                             }
-                          }
                         }
-                      }
                     }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "operationId": "settings-get-settings",
-        "summary": "Fetch all user-specific settings",
-        "description": "This endpoint requires admin access",
-        "tags": ["settings"],
-        "security": [
-          {
-            "bearer_auth": []
-          },
-          {
-            "basic_auth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "OCS-APIRequest",
-            "in": "header",
-            "description": "Required to be true for the API request to pass",
-            "required": true,
-            "schema": {
-              "type": "boolean",
-              "default": true
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Current settings",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": ["ocs"],
-                  "properties": {
-                    "ocs": {
-                      "type": "object",
-                      "required": ["meta", "data"],
-                      "properties": {
-                        "meta": {
-                          "$ref": "#/components/schemas/OCSMeta"
-                        },
-                        "data": {
-                          "type": "object",
-                          "additionalProperties": {
-                            "type": "string"
-                          }
+                },
+                "parameters": [
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
                         }
-                      }
                     }
-                  }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Settings saved",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "status"
+                                                    ],
+                                                    "properties": {
+                                                        "status": {
+                                                            "type": "string",
+                                                            "minLength": 1
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
-              }
+            },
+            "get": {
+                "operationId": "settings-get-settings",
+                "summary": "Fetch all user-specific settings",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "settings"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Current settings",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "ocs"
+                                    ],
+                                    "properties": {
+                                        "ocs": {
+                                            "type": "object",
+                                            "required": [
+                                                "meta",
+                                                "data"
+                                            ],
+                                            "properties": {
+                                                "meta": {
+                                                    "$ref": "#/components/schemas/OCSMeta"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-          }
         }
-      }
-    }
-  },
-  "tags": [
-    {
-      "name": "settings",
-      "description": "Handles user-specific settings such as the music folder path."
-    }
-  ]
+    },
+    "tags": [
+        {
+            "name": "settings",
+            "description": "Handles user-specific settings such as the music folder path."
+        }
+    ]
 }
