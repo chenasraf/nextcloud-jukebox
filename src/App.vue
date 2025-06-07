@@ -48,18 +48,12 @@
       <!-- Media Player -->
       <footer class="jukebox-player">
         <div class="controls">
-          <NcButton
-            :disabled="false"
-            variant="tertiary"
-            aria-label="Previous"
-            size="normal"
-            @click="playback.prev">
+          <NcButton variant="tertiary" aria-label="Previous" size="normal" @click="playback.prev">
             <template #icon>
               <SkipPrevious :size="20" />
             </template>
           </NcButton>
           <NcButton
-            :disabled="false"
             variant="primary"
             aria-label="Play/Pause"
             size="normal"
@@ -69,31 +63,40 @@
               <Pause :size="20" v-else />
             </template>
           </NcButton>
-          <NcButton
-            :disabled="false"
-            variant="tertiary"
-            aria-label="Next"
-            size="normal"
-            @click="playback.next">
+          <NcButton variant="tertiary" aria-label="Next" size="normal" @click="playback.next">
             <template #icon>
               <SkipNext :size="20" />
+            </template>
+          </NcButton>
+          <pre>{{ queue }}</pre>
+          <NcButton
+            :disabled="queue.length === 0"
+            variant="tertiary"
+            aria-label="Queue"
+            size="normal"
+            @click="toggleQueue">
+            <template #icon>
+              <PlaylistMusic :size="20" />
             </template>
           </NcButton>
         </div>
         <input type="range" min="0" max="100" v-model="seek" class="seekbar" />
       </footer>
+      <QueuePopup :show="showQueue" :queue="queue" @close="toggleQueue" @play="onPlayFromQueue" />
     </NcAppContent>
   </NcContent>
 </template>
 
 <script lang="ts">
-  import { defineComponent, computed } from 'vue'
+  import { defineComponent, computed, ref } from 'vue'
   import NcAppNavigation from '@nextcloud/vue/components/NcAppNavigation'
   import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
   import NcAppNavigationSearch from '@nextcloud/vue/components/NcAppNavigationSearch'
   import NcAppContent from '@nextcloud/vue/components/NcAppContent'
   import NcContent from '@nextcloud/vue/components/NcContent'
   import NcButton from '@nextcloud/vue/components/NcButton'
+
+  import QueuePopup from '@/components/media/QueuePopup.vue'
 
   import SkipPrevious from '@icons/SkipPrevious.vue'
   import SkipNext from '@icons/SkipNext.vue'
@@ -106,8 +109,9 @@
   import Book from '@icons/Book.vue'
   import Filmstrip from '@icons/Filmstrip.vue'
   import Tag from '@icons/Tag.vue'
+  import PlaylistMusic from '@icons/PlaylistMusic.vue'
 
-  import { usePlayback } from '@/composables/usePlayback'
+  import playback from '@/composables/usePlayback'
 
   export default defineComponent({
     name: 'App',
@@ -118,6 +122,7 @@
       NcAppNavigationItem,
       NcAppNavigationSearch,
       NcButton,
+      QueuePopup,
       SkipPrevious,
       SkipNext,
       Play,
@@ -125,6 +130,7 @@
       Music,
       Album,
       AccountMusic,
+      PlaylistMusic,
       Podcast,
       Book,
       Filmstrip,
@@ -136,13 +142,26 @@
       }
     },
     setup() {
-      const playback = usePlayback()
+      const showQueue = ref(false)
+
+      const toggleQueue = () => {
+        showQueue.value = !showQueue.value
+      }
+
+      const onPlayFromQueue = (media: Media) => {
+        playback.play(media)
+        showQueue.value = false
+      }
 
       return {
         searchValue: '',
         seek: 0,
         playback,
+        queue: computed(() => playback.queue.value),
         isPlaying: computed(() => playback.isPlaying.value),
+        showQueue,
+        toggleQueue,
+        onPlayFromQueue,
       }
     },
   })
@@ -152,19 +171,26 @@
   #jukebox-main {
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
 }
 
 #jukebox-router {
   flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
 }
 
 .jukebox-player {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 0.5rem;
   border-top: 1px solid var(--color-border);
   background: var(--color-background-light);
+  z-index: 1;
+  height: 150px;
 
   .controls {
     display: flex;

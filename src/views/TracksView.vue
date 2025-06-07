@@ -8,16 +8,17 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref } from 'vue'
 import { axios } from '@/axios'
+import { type Media } from '@/models/media'
 
 import MediaListItem from '@/components/media/MediaListItem.vue'
-import { usePlayback } from '@/composables/usePlayback'
+import playback from '@/composables/usePlayback'
 
 export default defineComponent({
   name: 'TracksView',
   components: { MediaListItem },
   setup() {
     const tracks = ref([])
-    const { play } = usePlayback()
+    const { play, overwriteQueue } = playback
 
     onMounted(async () => {
       try {
@@ -28,8 +29,10 @@ export default defineComponent({
       }
     })
 
-    const handlePlay = (track: any) => {
+    const handlePlay = (track: Media) => {
+      console.debug('[TracksView] Playing track:', track)
       play(track)
+      overwriteQueue([track])
     }
 
     return {
