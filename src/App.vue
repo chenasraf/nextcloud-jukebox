@@ -20,6 +20,11 @@
             <AccountMusic :size="20" />
           </template>
         </NcAppNavigationItem>
+        <NcAppNavigationItem name="Genres" :to="{ path: '/genres' }">
+          <template #icon>
+            <Tag :size="20" />
+          </template>
+        </NcAppNavigationItem>
         <NcAppNavigationItem name="Podcasts" :to="{ path: '/podcasts' }">
           <template #icon>
             <Podcast :size="20" />
@@ -35,9 +40,9 @@
             <Filmstrip :size="20" />
           </template>
         </NcAppNavigationItem>
-        <NcAppNavigationItem name="Genres" :to="{ path: '/genres' }">
+        <NcAppNavigationItem name="Radio" :to="{ path: '/radio' }">
           <template #icon>
-            <Tag :size="20" />
+            <RadioTower :size="20" />
           </template>
         </NcAppNavigationItem>
       </template>
@@ -54,13 +59,14 @@
             </template>
           </NcButton>
           <NcButton
+            class="play-button"
             variant="primary"
             aria-label="Play/Pause"
             size="normal"
             @click="playback.togglePlay">
             <template #icon>
-              <Play :size="20" v-if="!isPlaying" />
-              <Pause :size="20" v-else />
+              <Play :size="24" v-if="!isPlaying" />
+              <Pause :size="24" v-else />
             </template>
           </NcButton>
           <NcButton variant="tertiary" aria-label="Next" size="normal" @click="playback.next">
@@ -68,7 +74,6 @@
               <SkipNext :size="20" />
             </template>
           </NcButton>
-          <pre>{{ queue }}</pre>
           <NcButton
             :disabled="queue.length === 0"
             variant="tertiary"
@@ -80,7 +85,17 @@
             </template>
           </NcButton>
         </div>
-        <input type="range" min="0" max="100" v-model="seek" class="seekbar" />
+        <div class="seekbar-row">
+          <span class="time">{{ formattedCurrentTime }}</span>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            :value="seek"
+            @input="setSeek($event.target.value)"
+            class="seekbar" />
+          <span class="time">{{ formattedDuration }}</span>
+        </div>
       </footer>
       <QueuePopup :show="showQueue" :queue="queue" @close="toggleQueue" @play="onPlayFromQueue" />
     </NcAppContent>
@@ -110,6 +125,7 @@
   import Filmstrip from '@icons/Filmstrip.vue'
   import Tag from '@icons/Tag.vue'
   import PlaylistMusic from '@icons/PlaylistMusic.vue'
+  import RadioTower from '@icons/RadioTower.vue'
 
   import playback from '@/composables/usePlayback'
 
@@ -135,6 +151,7 @@
       Book,
       Filmstrip,
       Tag,
+      RadioTower,
     },
     provide() {
       return {
@@ -153,15 +170,27 @@
         showQueue.value = false
       }
 
+      function formatTime(seconds: number): string {
+        const m = Math.floor(seconds / 60)
+        const s = Math.floor(seconds % 60)
+        return `${m}:${s.toString().padStart(2, '0')}`
+      }
+
+      const formattedCurrentTime = computed(() => formatTime(playback.currentTime.value))
+      const formattedDuration = computed(() => formatTime(playback.duration.value))
+
       return {
         searchValue: '',
-        seek: 0,
+        seek: computed(() => playback.seek.value),
+        setSeek: playback.setSeek,
         playback,
         queue: computed(() => playback.queue.value),
         isPlaying: computed(() => playback.isPlaying.value),
         showQueue,
         toggleQueue,
         onPlayFromQueue,
+        formattedCurrentTime,
+        formattedDuration,
       }
     },
   })
@@ -190,12 +219,46 @@
   border-top: 1px solid var(--color-border);
   background: var(--color-background-light);
   z-index: 1;
-  height: 150px;
+  height: 160px;
 
   .controls {
     display: flex;
     gap: 1rem;
-    margin-bottom: 0.5rem;
+    align-items: center;
+
+    button {
+      border-radius: 50%;
+      height: var(--button-size) !important;
+      width: var(--button-size) !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .play-button {
+      --button-size: 3.5rem;
+
+      font-size: 1.25rem;
+    }
   }
+}
+
+.seekbar-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0 1rem;
+  gap: 0.5rem;
+}
+
+.seekbar {
+  flex: 1;
+}
+
+.time {
+  font-size: 0.85rem;
+  width: 3rem;
+  text-align: center;
+  color: var(--color-text-light);
 }
 </style>

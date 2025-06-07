@@ -1,5 +1,5 @@
 import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
-import TracksView from '../views/TracksView.vue'
+import TracksView from '@/views/TracksView.vue'
 
 const routes: RouteRecordRaw[] = [
   { path: '/', redirect: '/tracks' },
@@ -10,6 +10,7 @@ const routes: RouteRecordRaw[] = [
   // { path: '/audiobooks', component: () => import('../views/AudiobooksView.vue') },
   // { path: '/videos', component: () => import('../views/VideosView.vue') },
   // { path: '/genres', component: () => import('../views/GenresView.vue') },
+  // { path: '/radio', component: () => import('../views/RadioView.vue') },
 ]
 
 const router = createRouter({

@@ -1,6 +1,8 @@
 <template>
   <div class="tracks-view">
-    <h3>Track List</h3>
+    <header class="sticky-header">
+      <h3>Track List</h3>
+    </header>
     <MediaListItem v-for="track in tracks" :key="track.id" :media="track" media-type="track" @play="handlePlay" />
   </div>
 </template>
@@ -18,7 +20,7 @@ export default defineComponent({
   components: { MediaListItem },
   setup() {
     const tracks = ref([])
-    const { play, overwriteQueue } = playback
+    const { play, overwriteQueue, playIndex } = playback
 
     onMounted(async () => {
       try {
@@ -30,9 +32,13 @@ export default defineComponent({
     })
 
     const handlePlay = (track: Media) => {
-      console.debug('[TracksView] Playing track:', track)
-      play(track)
-      overwriteQueue([track])
+      const index = tracks.value.findIndex(t => t.id === track.id)
+      if (index !== -1) {
+        console.debug('[TracksView] Overwriting queue with starting index:', index)
+        overwriteQueue([...tracks.value], index)
+      } else {
+        console.warn('Track not found in current view list:', track)
+      }
     }
 
     return {
@@ -43,7 +49,29 @@ export default defineComponent({
 })
 </script>
 <style lang="scss">
-h3 {
-  text-align: center;
+.tracks-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .sticky-header {
+    position: sticky;
+    top: -16px;
+    background: var(--color-main-background);
+    padding: 1rem;
+    z-index: 10;
+    border-bottom: 1px solid var(--color-border);
+
+    h3 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+  }
+
+  .track-list {
+    overflow-y: auto;
+    flex: 1;
+  }
 }
 </style>
