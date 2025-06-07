@@ -1,8 +1,8 @@
 <template>
   <div class="tracks-view">
-    <header class="sticky-header">
-      <h3>Track List</h3>
-    </header>
+    <PageTitle>
+      Track List
+    </PageTitle>
     <MediaListItem v-for="track in tracks" :key="track.id" :media="track" media-type="track" @play="handlePlay" />
   </div>
 </template>
@@ -13,11 +13,13 @@ import { axios } from '@/axios'
 import { type Media } from '@/models/media'
 
 import MediaListItem from '@/components/media/MediaListItem.vue'
+import PageTitle from '@/components/PageTitle.vue'
+
 import playback from '@/composables/usePlayback'
 
 export default defineComponent({
   name: 'TracksView',
-  components: { MediaListItem },
+  components: { MediaListItem, PageTitle },
   setup() {
     const tracks = ref([])
     const { play, overwriteQueue, playIndex } = playback
@@ -53,21 +55,6 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   height: 100%;
-
-  .sticky-header {
-    position: sticky;
-    top: -16px;
-    background: var(--color-main-background);
-    padding: 1rem;
-    z-index: 10;
-    border-bottom: 1px solid var(--color-border);
-
-    h3 {
-      text-align: center;
-      margin-top: 0;
-      margin-bottom: 0;
-    }
-  }
 
   .track-list {
     overflow-y: auto;

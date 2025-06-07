@@ -101,4 +101,51 @@ class ApiController extends OCSController {
 			return new JSONResponse(['message' => 'Track not found'], Http::STATUS_NOT_FOUND);
 		}
 	}
+
+	/**
+	 * Fetch albums with grouped tracks for current user
+	 *
+	 * @return JSONResponse<Http::STATUS_OK, array{albums: list<array{
+	 *     album: string,
+	 *     albumArtist: string,
+	 *     year: int|null,
+	 *     cover: string|null,
+	 *     tracks: list<array<string, mixed>>
+	 * }>}, array{}>
+	 *
+	 * 200: Grouped albums and their tracks
+	 */
+	#[ApiRoute(verb: 'GET', url: '/api/albums')]
+	public function listAlbums(): JSONResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new JSONResponse(['message' => 'Unauthenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+
+		$tracks = $this->mediaMapper->findByMediaType($user->getUID(), 'track');
+
+		$albums = [];
+
+		foreach ($tracks as $track) {
+			$album = $track->getAlbum() ?? '';
+			$albumArtist = $track->getAlbumArtist() ?? '';
+
+			$key = $albumArtist . '|' . $album;
+
+			if (!isset($albums[$key])) {
+				$albums[$key] = [
+					'album' => $album,
+					'albumArtist' => $albumArtist,
+					'year' => $track->getYear(),
+					'cover' => $track->getAlbumArtBase64(),
+					'tracks' => [],
+				];
+			}
+
+			$albums[$key]['tracks'][] = $track->jsonSerialize();
+		}
+
+		// Return as array, not associative map
+		return new JSONResponse(['albums' => array_values($albums)]);
+	}
 }

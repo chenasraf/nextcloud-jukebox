@@ -210,6 +210,92 @@
                 }
             }
         },
+        "/ocs/v2.php/apps/jukebox/api/albums": {
+            "get": {
+                "operationId": "api-list-albums",
+                "summary": "Fetch albums with grouped tracks for current user",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "api"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Grouped albums and their tracks",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "albums"
+                                    ],
+                                    "properties": {
+                                        "albums": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "required": [
+                                                    "album",
+                                                    "albumArtist",
+                                                    "year",
+                                                    "cover",
+                                                    "tracks"
+                                                ],
+                                                "properties": {
+                                                    "album": {
+                                                        "type": "string"
+                                                    },
+                                                    "albumArtist": {
+                                                        "type": "string"
+                                                    },
+                                                    "year": {
+                                                        "type": "integer",
+                                                        "format": "int64",
+                                                        "nullable": true
+                                                    },
+                                                    "cover": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "tracks": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "additionalProperties": {
+                                                                "type": "object"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/ocs/v2.php/apps/jukebox/api/settings": {
             "put": {
                 "operationId": "settings-save-settings",
