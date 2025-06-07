@@ -1,28 +1,44 @@
 <template>
   <NcContent app-name="jukebox">
     <NcAppNavigation>
-      <template #search> <NcAppNavigationSearch v-model="searchValue" label="Search…" /> </template>
+      <template #search>
+        <NcAppNavigationSearch v-model="searchValue" label="Search…" />
+      </template>
       <template #list>
         <NcAppNavigationItem name="Tracks" :to="{ path: '/tracks' }">
-          <template #icon> <Music :size="20" /> </template>
+          <template #icon>
+            <Music :size="20" />
+          </template>
         </NcAppNavigationItem>
         <NcAppNavigationItem name="Albums" :to="{ path: '/albums' }">
-          <template #icon> <Album :size="20" /> </template>
+          <template #icon>
+            <Album :size="20" />
+          </template>
         </NcAppNavigationItem>
         <NcAppNavigationItem name="Artists" :to="{ path: '/artists' }">
-          <template #icon> <AccountMusic :size="20" /> </template>
+          <template #icon>
+            <AccountMusic :size="20" />
+          </template>
         </NcAppNavigationItem>
         <NcAppNavigationItem name="Podcasts" :to="{ path: '/podcasts' }">
-          <template #icon> <Podcast :size="20" /> </template>
+          <template #icon>
+            <Podcast :size="20" />
+          </template>
         </NcAppNavigationItem>
         <NcAppNavigationItem name="Audiobooks" :to="{ path: '/audiobooks' }">
-          <template #icon> <Book :size="20" /> </template>
+          <template #icon>
+            <Book :size="20" />
+          </template>
         </NcAppNavigationItem>
         <NcAppNavigationItem name="Videos" :to="{ path: '/videos' }">
-          <template #icon> <Filmstrip :size="20" /> </template>
+          <template #icon>
+            <Filmstrip :size="20" />
+          </template>
         </NcAppNavigationItem>
         <NcAppNavigationItem name="Genres" :to="{ path: '/genres' }">
-          <template #icon> <Tag :size="20" /> </template>
+          <template #icon>
+            <Tag :size="20" />
+          </template>
         </NcAppNavigationItem>
       </template>
       <template #footer> <!-- Add footer controls if needed --> </template>
@@ -37,17 +53,20 @@
             variant="tertiary"
             aria-label="Previous"
             size="normal"
-            @click="prev">
-            <template #icon> <SkipPrevious :size="20" /> </template>
+            @click="playback.prev">
+            <template #icon>
+              <SkipPrevious :size="20" />
+            </template>
           </NcButton>
           <NcButton
             :disabled="false"
             variant="primary"
             aria-label="Play/Pause"
             size="normal"
-            @click="togglePlay">
+            @click="playback.togglePlay">
             <template #icon>
-              <Play :size="20" v-if="!isPlaying" /> <Pause :size="20" v-else />
+              <Play :size="20" v-if="!isPlaying" />
+              <Pause :size="20" v-else />
             </template>
           </NcButton>
           <NcButton
@@ -55,8 +74,10 @@
             variant="tertiary"
             aria-label="Next"
             size="normal"
-            @click="next">
-            <template #icon> <SkipNext :size="20" /> </template>
+            @click="playback.next">
+            <template #icon>
+              <SkipNext :size="20" />
+            </template>
           </NcButton>
         </div>
         <input type="range" min="0" max="100" v-model="seek" class="seekbar" />
@@ -66,7 +87,7 @@
 </template>
 
 <script lang="ts">
-  import { defineComponent } from 'vue'
+  import { defineComponent, computed } from 'vue'
   import NcAppNavigation from '@nextcloud/vue/components/NcAppNavigation'
   import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
   import NcAppNavigationSearch from '@nextcloud/vue/components/NcAppNavigationSearch'
@@ -85,6 +106,8 @@
   import Book from '@icons/Book.vue'
   import Filmstrip from '@icons/Filmstrip.vue'
   import Tag from '@icons/Tag.vue'
+
+  import { usePlayback } from '@/composables/usePlayback'
 
   export default defineComponent({
     name: 'App',
@@ -112,23 +135,15 @@
         'NcContent:setHasAppNavigation': () => true,
       }
     },
-    data() {
+    setup() {
+      const playback = usePlayback()
+
       return {
         searchValue: '',
-        isPlaying: false,
         seek: 0,
+        playback,
+        isPlaying: computed(() => playback.isPlaying.value),
       }
-    },
-    methods: {
-      togglePlay() {
-        this.isPlaying = !this.isPlaying
-      },
-      next() {
-        // Placeholder
-      },
-      prev() {
-        // Placeholder
-      },
     },
   })
 </script>

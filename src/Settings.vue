@@ -33,7 +33,7 @@
   import NcAppSettingsSection from '@nextcloud/vue/components/NcAppSettingsSection'
   import NcTextField from '@nextcloud/vue/components/NcTextField'
   import NcButton from '@nextcloud/vue/components/NcButton'
-  import { settingsAxios } from './axios'
+  import { axios } from './axios'
   import { t } from '@nextcloud/l10n'
   import { getFilePickerBuilder } from '@nextcloud/dialogs'
   import '@nextcloud/dialogs/style.css'
@@ -66,8 +66,8 @@
       async fetchSettings() {
         this.loading = true
         try {
-          const response = await settingsAxios.get('/settings')
-          const data = response.data.ocs.data
+          const response = await axios.get('/settings')
+          const data = response.data
           this.musicFolder = data.music_folder_path || ''
         } catch (e) {
           console.error('Failed to fetch settings:', e)
@@ -82,7 +82,7 @@
             music_folder_path: this.musicFolder,
           }
           console.log('Saving settings :', data)
-          await settingsAxios.put('/settings', { data })
+          await axios.put('/settings', { data })
         } catch (e) {
           console.error('Failed to save settings:', e)
         } finally {

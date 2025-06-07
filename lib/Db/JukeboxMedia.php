@@ -95,7 +95,7 @@ class JukeboxMedia extends Entity implements JsonSerializable {
 			'album' => $this->album,
 			'albumArtist' => $this->albumArtist,
 			'duration' => $this->duration,
-			'albumArt' => $this->albumArt,
+			'albumArt' => $this->getAlbumArtBase64(),
 			'genre' => $this->genre,
 			'year' => $this->year,
 			'bitrate' => $this->bitrate,

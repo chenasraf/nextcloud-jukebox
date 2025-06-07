@@ -1,7 +1,5 @@
 import { generateOcsUrl } from '@nextcloud/router'
-import axios from '@nextcloud/axios'
+import _axios from '@nextcloud/axios'
 
 const baseURL = generateOcsUrl('/apps/jukebox/api')
-export const settingsAxios = axios.create({
-  baseURL,
-})
+export const axios = _axios.create({ baseURL })

@@ -8,6 +8,7 @@ use OCA\Jukebox\AppInfo\Application;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\OCSController;
 use OCP\IAppConfig;
 use OCP\IRequest;
@@ -77,6 +78,6 @@ class SettingsController extends OCSController {
 			$result['music_folder_path'] = $musicPath;
 		}
 
-		return new DataResponse($result);
+		return new JSONResponse($result);
 	}
 }
