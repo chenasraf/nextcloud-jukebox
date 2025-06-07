@@ -49,7 +49,12 @@
       <template #footer> <!-- Add footer controls if needed --> </template>
     </NcAppNavigation>
     <NcAppContent id="jukebox-main">
-      <div id="jukebox-router"> <router-view /> </div>
+      <div id="jukebox-router">
+        <div v-if="isRouterLoading" class="router-loading">
+          <NcLoadingIcon :size="64" />
+        </div>
+        <router-view v-else />
+      </div>
       <!-- Media Player -->
       <footer class="jukebox-player">
         <div class="controls">
@@ -104,12 +109,15 @@
 
 <script lang="ts">
   import { defineComponent, computed, ref } from 'vue'
+  import { useRouter } from 'vue-router'
+
   import NcAppNavigation from '@nextcloud/vue/components/NcAppNavigation'
   import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
   import NcAppNavigationSearch from '@nextcloud/vue/components/NcAppNavigationSearch'
   import NcAppContent from '@nextcloud/vue/components/NcAppContent'
   import NcContent from '@nextcloud/vue/components/NcContent'
   import NcButton from '@nextcloud/vue/components/NcButton'
+  import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
   import QueuePopup from '@/components/media/QueuePopup.vue'
 
@@ -137,6 +145,7 @@
       NcAppNavigation,
       NcAppNavigationItem,
       NcAppNavigationSearch,
+      NcLoadingIcon,
       NcButton,
       QueuePopup,
       SkipPrevious,
@@ -159,6 +168,12 @@
       }
     },
     setup() {
+      const router = useRouter()
+      const isRouterLoading = ref(true)
+
+      router.beforeEach(() => (isRouterLoading.value = true))
+      router.afterEach(() => (isRouterLoading.value = false))
+
       const showQueue = ref(false)
 
       const toggleQueue = () => {
@@ -191,6 +206,7 @@
         onPlayFromQueue,
         formattedCurrentTime,
         formattedDuration,
+        isRouterLoading,
       }
     },
   })
@@ -260,5 +276,12 @@
   width: 3rem;
   text-align: center;
   color: var(--color-text-light);
+}
+
+.router-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 </style>

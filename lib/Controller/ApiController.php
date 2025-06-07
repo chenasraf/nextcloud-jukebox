@@ -145,7 +145,6 @@ class ApiController extends OCSController {
 			$albums[$key]['tracks'][] = $track->jsonSerialize();
 		}
 
-		// Return as array, not associative map
 		return new JSONResponse(['albums' => array_values($albums)]);
 	}
 }
