@@ -19,7 +19,7 @@ It supports music files, podcasts (with gPodder sync), audiobooks, YouTube video
 - 📺 Embed and play YouTube videos
 - 📻 Tune in to online radio streams
 	]]></description>
-	<version>0.1.0</version>
+	<version>0.0.0</version>
 	<licence>agpl</licence>
 	<author mail="contact@casraf.dev" homepage="https://casraf.dev">Chen Asraf</author>
 	<namespace>Jukebox</namespace>
