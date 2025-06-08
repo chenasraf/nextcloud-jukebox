@@ -2,7 +2,6 @@
   <NcListItem :active="isActive" :name="media.title || 'Untitled'" @click.prevent="onPlay" :bold="false">
     <template #icon>
       <img v-if="media.albumArt" :src="media.albumArt" alt="Cover" class="cover" width="44" height="44" />
-      <!-- fallback if no album art -->
       <Music v-else :size="44" />
     </template>
 
@@ -11,29 +10,34 @@
     </template>
 
     <template #actions>
-      <NcActionButton @click.stop="onPlay">
+      <slot name="actions-start" />
+
+      <NcActionButton v-if="!disablePlay" @click.stop="onPlay">
         <template #icon>
           <Play :size="20" />
         </template>
         Play
       </NcActionButton>
 
-      <NcActionButton @click.stop="onPlayNext">
+      <NcActionButton v-if="!disablePlayNext" @click.stop="onPlayNext">
         <template #icon>
           <SkipNext :size="20" />
         </template>
         Play Next
       </NcActionButton>
 
-      <NcActionButton @click.stop="onAddToQueue">
+      <NcActionButton v-if="!disableAddToQueue" @click.stop="onAddToQueue">
         <template #icon>
           <PlaylistPlus :size="20" />
         </template>
         Add to Queue
       </NcActionButton>
+
+      <slot name="actions-end" />
     </template>
   </NcListItem>
 </template>
+
 
 <script lang="ts">
 import { defineComponent, computed, type PropType } from 'vue'
@@ -59,12 +63,26 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    disablePlay: {
+      type: Boolean,
+      default: false,
+    },
+    disablePlayNext: {
+      type: Boolean,
+      default: false,
+    },
+    disableAddToQueue: {
+      type: Boolean,
+      default: false,
+    },
   },
   components: {
     NcActionButton,
     NcListItem,
     Music,
-    Play, SkipNext, PlaylistPlus
+    Play,
+    SkipNext,
+    PlaylistPlus,
   },
   emits: ['play'],
   setup(props, { emit }) {

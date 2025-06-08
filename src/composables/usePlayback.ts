@@ -91,6 +91,18 @@ function addToQueue(media: Media | Media[]) {
   }
 }
 
+function removeFromQueue(media: Media) {
+  const index = queue.value.findIndex(item => item.id === media.id)
+  if (index !== -1) {
+    queue.value.splice(index, 1)
+    if (currentIndex.value >= index) {
+      currentIndex.value = Math.max(currentIndex.value - 1, -1)
+    }
+  } else {
+    console.warn('Media not found in queue:', media)
+  }
+}
+
 function addAsNext(media: Media) {
   if (currentIndex.value >= 0) {
     queue.value.splice(currentIndex.value + 1, 0, media)
@@ -112,6 +124,15 @@ function overwriteQueue(newQueue: Media[], startIndex = 0) {
     play(queue.value[startIndex])
   } else {
     console.warn('No valid track at startIndex', startIndex)
+  }
+}
+
+function playFromQueue(media: Media) {
+  const index = queue.value.findIndex(item => item.id === media.id)
+  if (index !== -1) {
+    playIndex(index)
+  } else {
+    console.warn('Media not found in queue:', media)
   }
 }
 
@@ -154,6 +175,8 @@ function usePlayback() {
     queue,
     currentIndex,
     addToQueue,
+    removeFromQueue,
+    playFromQueue,
     addAsNext,
     clearQueue,
     overwriteQueue,

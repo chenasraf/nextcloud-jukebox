@@ -82,11 +82,7 @@
               <SkipNext :size="20" />
             </template>
           </NcButton>
-          <QueuePopover
-            :shown="showQueue"
-            :queue="queue"
-            @close="showQueue = false"
-            @play="handlePlay">
+          <QueuePopover :shown="showQueue" :queue="queue" @close="showQueue = false">
             <template #trigger>
               <NcButton variant="tertiary" aria-label="Queue" size="normal" @click="toggleQueue">
                 <template #icon>
@@ -188,11 +184,6 @@
         showQueue.value = !showQueue.value
       }
 
-      const onPlayFromQueue = (media: Media) => {
-        playback.play(media)
-        showQueue.value = false
-      }
-
       function formatTime(seconds: number): string {
         const m = Math.floor(seconds / 60)
         const s = Math.floor(seconds % 60)
@@ -211,7 +202,6 @@
         isPlaying: computed(() => playback.isPlaying.value),
         showQueue,
         toggleQueue,
-        onPlayFromQueue,
         formattedCurrentTime,
         formattedDuration,
         isRouterLoading,
