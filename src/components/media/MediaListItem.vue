@@ -11,9 +11,26 @@
     </template>
 
     <template #actions>
-      <NcActionButton @click.stop="onPlay">Play</NcActionButton>
-      <NcActionButton @click.stop="onPlayNext">Next</NcActionButton>
-      <NcActionButton @click.stop="onAddToQueue">Queue</NcActionButton>
+      <NcActionButton @click.stop="onPlay">
+        <template #icon>
+          <Play :size="20" />
+        </template>
+        Play
+      </NcActionButton>
+
+      <NcActionButton @click.stop="onPlayNext">
+        <template #icon>
+          <SkipNext :size="20" />
+        </template>
+        Play Next
+      </NcActionButton>
+
+      <NcActionButton @click.stop="onAddToQueue">
+        <template #icon>
+          <PlaylistPlus :size="20" />
+        </template>
+        Add to Queue
+      </NcActionButton>
     </template>
   </NcListItem>
 </template>
@@ -25,7 +42,11 @@ import playback from '@/composables/usePlayback'
 
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+
 import Music from '@icons/Music.vue'
+import Play from '@icons/Play.vue'
+import SkipNext from '@icons/SkipNext.vue'
+import PlaylistPlus from '@icons/PlaylistPlus.vue'
 
 export default defineComponent({
   name: 'MediaListItem',
@@ -43,6 +64,7 @@ export default defineComponent({
     NcActionButton,
     NcListItem,
     Music,
+    Play,SkipNext,PlaylistPlus
   },
   emits: ['play'],
   setup(props, { emit }) {

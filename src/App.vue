@@ -97,7 +97,7 @@
             min="0"
             max="100"
             :value="seek"
-            @input="setSeek($event.target.value)"
+            @input="setSeek(Number(($event.target as HTMLInputElement).value))"
             class="seekbar" />
           <span class="time">{{ formattedDuration }}</span>
         </div>
@@ -120,6 +120,7 @@
   import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
   import QueuePopup from '@/components/media/QueuePopup.vue'
+  import { type Media } from '@/models/media'
 
   import SkipPrevious from '@icons/SkipPrevious.vue'
   import SkipNext from '@icons/SkipNext.vue'
