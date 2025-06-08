@@ -10,7 +10,10 @@
             <Music :size="20" />
           </template>
         </NcAppNavigationItem>
-        <NcAppNavigationItem name="Albums" :to="{ path: '/albums' }">
+        <NcAppNavigationItem
+          name="Albums"
+          :to="{ path: '/albums' }"
+          :active="isPrefixRoute('/albums')">
           <template #icon>
             <Album :size="20" />
           </template>
@@ -79,16 +82,19 @@
               <SkipNext :size="20" />
             </template>
           </NcButton>
-          <NcButton
-            :disabled="queue.length === 0"
-            variant="tertiary"
-            aria-label="Queue"
-            size="normal"
-            @click="toggleQueue">
-            <template #icon>
-              <PlaylistMusic :size="20" />
+          <QueuePopover
+            :shown="showQueue"
+            :queue="queue"
+            @close="showQueue = false"
+            @play="handlePlay">
+            <template #trigger>
+              <NcButton variant="tertiary" aria-label="Queue" size="normal" @click="toggleQueue">
+                <template #icon>
+                  <PlaylistMusic :size="20" />
+                </template>
+              </NcButton>
             </template>
-          </NcButton>
+          </QueuePopover>
         </div>
         <div class="seekbar-row">
           <span class="time">{{ formattedCurrentTime }}</span>
@@ -102,14 +108,13 @@
           <span class="time">{{ formattedDuration }}</span>
         </div>
       </footer>
-      <QueuePopup :show="showQueue" :queue="queue" @close="toggleQueue" @play="onPlayFromQueue" />
     </NcAppContent>
   </NcContent>
 </template>
 
 <script lang="ts">
   import { defineComponent, computed, ref } from 'vue'
-  import { useRouter } from 'vue-router'
+  import { useRouter, useRoute } from 'vue-router'
 
   import NcAppNavigation from '@nextcloud/vue/components/NcAppNavigation'
   import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
@@ -119,7 +124,7 @@
   import NcButton from '@nextcloud/vue/components/NcButton'
   import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
-  import QueuePopup from '@/components/media/QueuePopup.vue'
+  import QueuePopover from '@/components/media/QueuePopover.vue'
   import { type Media } from '@/models/media'
 
   import SkipPrevious from '@icons/SkipPrevious.vue'
@@ -148,7 +153,7 @@
       NcAppNavigationSearch,
       NcLoadingIcon,
       NcButton,
-      QueuePopup,
+      QueuePopover,
       SkipPrevious,
       SkipNext,
       Play,
@@ -170,6 +175,8 @@
     },
     setup() {
       const router = useRouter()
+      const route = useRoute()
+      const isPrefixRoute = (prefix: string) => route.path.startsWith(prefix)
       const isRouterLoading = ref(true)
 
       router.beforeEach(() => (isRouterLoading.value = true))
@@ -208,6 +215,7 @@
         formattedCurrentTime,
         formattedDuration,
         isRouterLoading,
+        isPrefixRoute,
       }
     },
   })

@@ -17,3 +17,12 @@ export interface Media {
   mtime: number
   rawId3: string | null
 }
+
+export interface Album {
+  album: string
+  albumArtist: string
+  year: number | null
+  cover: string | null
+  genre: string | null
+  tracks: Media[]
+}

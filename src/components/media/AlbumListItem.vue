@@ -1,6 +1,6 @@
 <template>
   <div class="album-list-item">
-    <div ref="albumInfoRef" class="album-info" @click="playAll">
+    <div ref="albumInfoRef" class="album-info" @click="goToAlbum(album)">
       <img v-if="album.cover" :src="album.cover" alt="Cover" width="128" height="128" class="cover" />
       <Music v-else :size="128" />
       <div class="metadata">
@@ -8,6 +8,13 @@
         <div class="artist">{{ album.albumArtist || 'Unknown Artist' }}</div>
         <div class="year" v-if="album.year">{{ album.year }}</div>
       </div>
+
+      <NcButton variant="primary" @click.stop="playAll">
+        <template #icon>
+          <Play :size="20" />
+        </template>
+        Play
+      </NcButton>
     </div>
 
     <div class="track-list-wrapper">
@@ -33,18 +40,13 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, nextTick, type PropType, watch } from 'vue'
-import { type Media } from '@/models/media'
+import type { Media, Album } from '@/models/media'
+import { useRouter } from 'vue-router'
 
 import Music from '@icons/Music.vue'
+import Play from '@icons/Play.vue'
+import NcButton from '@nextcloud/vue/components/NcButton'
 import playback from '@/composables/usePlayback'
-
-export interface Album {
-  album: string
-  albumArtist: string
-  year: number | null
-  cover: string | null
-  tracks: Media[]
-}
 
 export default defineComponent({
   name: 'AlbumListItem',
@@ -56,9 +58,12 @@ export default defineComponent({
   },
   components: {
     Music,
+    Play,
+    NcButton,
   },
   setup(props) {
     const { overwriteQueue, currentMedia } = playback
+    const router = useRouter()
 
     const collapsed = ref(true)
     const collapsedHeight = ref<number>(128)
@@ -82,6 +87,11 @@ export default defineComponent({
 
     const playTrack = (index: number) => {
       overwriteQueue([...props.album.tracks], index)
+    }
+
+    const goToAlbum = (album: Album) => {
+      const id = btoa(unescape(encodeURIComponent(`${album.albumArtist}|${album.album}`)))
+      router.push(`/albums/${id}`)
     }
 
     const trackListStyle = computed(() => {
@@ -110,7 +120,8 @@ export default defineComponent({
       albumInfoRef,
       trackListRef,
       trackListStyle,
-      activeId: computed(() => currentMedia.value?.id)
+      activeId: computed(() => currentMedia.value?.id),
+      goToAlbum,
     }
   },
 })
@@ -147,6 +158,7 @@ export default defineComponent({
 
 .metadata {
   margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 
   .title {
     font-weight: bold;

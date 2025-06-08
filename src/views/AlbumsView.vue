@@ -12,19 +12,12 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref } from 'vue'
 import { axios } from '@/axios'
-import { type Media } from '@/models/media'
+import type { Media, Album } from '@/models/media'
 
 import AlbumListItem from '@/components/media/AlbumListItem.vue'
 import Page from '@/components/Page.vue'
 import playback from '@/composables/usePlayback'
 
-export interface Album {
-  album: string
-  albumArtist: string
-  year: number | null
-  cover: string | null
-  tracks: Media[]
-}
 
 export default defineComponent({
   name: 'AlbumsView',

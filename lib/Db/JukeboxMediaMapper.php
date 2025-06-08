@@ -98,16 +98,18 @@ class JukeboxMediaMapper extends QBMapper {
 	/**
 	 * @param string $userId
 	 * @param string $album
+	 * @param string $albumArtist
 	 * @return array<JukeboxMedia>
 	 */
-	public function findByAlbum(string $userId, string $album): array {
+	public function findByAlbum(string $userId, string $album, string $albumArtist): array {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
 			->from($this->getTableName())
 			->where(
 				$qb->expr()->andX(
 					$qb->expr()->eq('user_id', $qb->createNamedParameter($userId)),
-					$qb->expr()->eq('album', $qb->createNamedParameter($album))
+					$qb->expr()->eq('album', $qb->createNamedParameter($album)),
+					$qb->expr()->eq('album_artist', $qb->createNamedParameter($albumArtist)),
 				)
 			);
 		return $this->findEntities($qb);

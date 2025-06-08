@@ -1,5 +1,5 @@
 <template>
-  <NcListItem :active="isActive" :name="media.title || 'Untitled'" @click="onPlay" :bold="false">
+  <NcListItem :active="isActive" :name="media.title || 'Untitled'" @click.prevent="onPlay" :bold="false">
     <template #icon>
       <img v-if="media.albumArt" :src="media.albumArt" alt="Cover" class="cover" width="44" height="44" />
       <!-- fallback if no album art -->
@@ -64,7 +64,7 @@ export default defineComponent({
     NcActionButton,
     NcListItem,
     Music,
-    Play,SkipNext,PlaylistPlus
+    Play, SkipNext, PlaylistPlus
   },
   emits: ['play'],
   setup(props, { emit }) {

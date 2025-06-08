@@ -191,9 +191,15 @@ class MusicScanner {
 				$media->setAlbumArt($info['comments']['picture'][0]['data']);
 			}
 
-			$rawId3 = json_encode($info);
+			$sanitizedInfo = $this->sanitizeForJson($info);
+			$rawId3 = json_encode($sanitizedInfo);
 			if ($rawId3 !== false) {
 				$media->setRawId3($rawId3);
+			} else {
+				$this->logger->warning("Failed to encode ID3 data for file '{$file->getPath()}'");
+				if (json_last_error() !== JSON_ERROR_NONE) {
+					$this->logger->warning('JSON encode error: ' . json_last_error_msg());
+				}
 			}
 
 			if ($existing) {
@@ -206,5 +212,49 @@ class MusicScanner {
 		} catch (\Throwable $e) {
 			$this->logger->error("Failed to save metadata for file '{$file->getPath()}': " . $e->getMessage());
 		}
+	}
+
+	private function sanitizeForJson(mixed $data, int $depth = 0): mixed {
+		if ($depth > 30) {
+			return '**depth limit exceeded**';
+		}
+
+		if (is_resource($data)) {
+			return '**resource**';
+		}
+
+		if (is_object($data)) {
+			if (method_exists($data, '__toString')) {
+				return (string)$data;
+			}
+			return '**object**';
+		}
+
+		if (is_array($data)) {
+			$sanitized = [];
+			foreach ($data as $key => $value) {
+				if (
+					$key === 'data' &&
+					is_string($value) &&
+					isset($data['picturetype']) // heuristic for image
+				) {
+					// $sanitized[$key] = base64_encode($value);
+					$sanitized[$key] = '**binary data**'; // avoid large base64 strings in JSON
+				} else {
+					$sanitized[$key] = $this->sanitizeForJson($value, $depth + 1);
+				}
+			}
+			return $sanitized;
+		}
+
+		if (is_string($data)) {
+			// Convert broken encodings to valid UTF-8 using iconv with translit
+			if (!mb_check_encoding($data, 'UTF-8')) {
+				$converted = @iconv('ISO-8859-1', 'UTF-8//IGNORE', $data);
+				return $converted !== false ? $converted : '**invalid string**';
+			}
+		}
+
+		return $data;
 	}
 }
