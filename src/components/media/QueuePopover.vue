@@ -1,7 +1,9 @@
 <template>
-  <NcPopover popup-role="dialog" :shown="shown" @close="onClose">
+  <NcPopover popup-role="dialog" v-model:shown="shown" @close="onClose">
     <template #trigger>
-      <slot name="trigger" />
+      <div ref="triggerRef">
+        <slot name="trigger" />
+      </div>
     </template>
 
     <template #default>
@@ -28,7 +30,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, onBeforeUnmount, type PropType } from 'vue'
+import { defineComponent, ref, onMounted, computed, onBeforeUnmount, type PropType } from 'vue'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
 import MediaListItem from '@/components/media/MediaListItem.vue'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
@@ -46,16 +48,19 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['close'],
-  setup(_, { emit }) {
+  setup(props, { emit }) {
     const popoverRef = ref<HTMLElement | null>(null)
+    const triggerRef = ref<HTMLElement | null>(null)
 
-    const onClose = () => emit('close')
+    const onClose = () => {
+      emit('update:shown', false)
+    }
     const onPlay = (media: Media) => playback.playFromQueue(media)
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (popoverRef.value && !popoverRef.value.contains(event.target as Node)) {
-        emit('close')
+      if (!popoverRef.value || !triggerRef.value) return
+      if (!popoverRef.value.contains(event.target as Node) && !triggerRef.value.contains(event.target as Node)) {
+        onClose()
       }
     }
 
@@ -69,16 +74,19 @@ export default defineComponent({
 
     const onRemove = (media: Media) => {
       playback.removeFromQueue(media)
-      if (popoverRef.value) {
-        popoverRef.value.focus() // Keep focus on the popover after removing an item
-      }
+      emit('update:shown', true)
     }
 
     return {
+      shown: computed({
+        get: () => props.shown,
+        set: (val) => emit('update:shown', val),
+      }),
       onClose,
       onPlay,
       onRemove,
       popoverRef,
+      triggerRef,
     }
   },
 })

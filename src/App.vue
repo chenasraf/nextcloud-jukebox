@@ -82,7 +82,7 @@
               <SkipNext :size="20" />
             </template>
           </NcButton>
-          <QueuePopover :shown="showQueue" :queue="queue" @close="showQueue = false">
+          <QueuePopover v-model:shown="showQueue" :queue="queue">
             <template #trigger>
               <NcButton variant="tertiary" aria-label="Queue" size="normal" @click="toggleQueue">
                 <template #icon>
@@ -180,8 +180,10 @@
 
       const showQueue = ref(false)
 
-      const toggleQueue = () => {
-        showQueue.value = !showQueue.value
+      function toggleQueue() {
+        if (!showQueue.value) {
+          showQueue.value = !showQueue.value
+        }
       }
 
       function formatTime(seconds: number): string {
