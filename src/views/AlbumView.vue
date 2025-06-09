@@ -9,7 +9,9 @@
       <Music v-else :size="100" />
       <div class="meta">
         <h2>{{ album.album }}</h2>
-        <p>{{ album.albumArtist }}</p>
+        <a href="#" class="artist" @click.prevent="goToArtist(album.albumArtist)">
+          {{ album.albumArtist }}
+        </a>
         <div class="details">
           <p v-if="album.year">Released: {{ album.year }}</p>
           <p v-if="album.genre">Genre: {{ album.genre }}</p>
@@ -29,15 +31,17 @@ import { defineComponent, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { axios } from '@/axios'
 import type { Album, Media } from '@/models/media'
+import { useGoToArtist } from '@/utils/routing'
 
 import Page from '@/components/Page.vue'
 import MediaListItem from '@/components/media/MediaListItem.vue'
 import Music from '@icons/Music.vue'
 import playback from '@/composables/usePlayback'
+import NcButton from '@nextcloud/vue/components/NcButton'
 
 export default defineComponent({
   name: 'AlbumView',
-  components: { Page, MediaListItem, Music },
+  components: { Page, MediaListItem, Music, NcButton },
   setup() {
     const route = useRoute()
     const album = ref<Album | null>(null)
@@ -45,9 +49,10 @@ export default defineComponent({
     const { overwriteQueue } = playback
 
     onMounted(async () => {
-      const id = decodeURIComponent(route.params.id as string)
+      const artistId = decodeURIComponent(route.params.artist as string)
+      const albumId = decodeURIComponent(route.params.album as string)
       try {
-        const res = await axios.get(`/albums/${id}`)
+        const res = await axios.get(`/albums/${artistId}/${albumId}`)
         album.value = res.data
       } catch (err) {
         console.error('Failed to load album:', err)
@@ -65,7 +70,10 @@ export default defineComponent({
       }
     }
 
+    const goToArtist = useGoToArtist()
+
     return {
+      goToArtist,
       album,
       isLoading,
       handlePlay,

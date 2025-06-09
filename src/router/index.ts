@@ -4,7 +4,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/', redirect: '/tracks' },
   { path: '/tracks', component: () => import('@/views/TracksView.vue') },
   { path: '/albums', component: () => import('@/views/AlbumsView.vue') },
-  { path: '/albums/:id', component: () => import('@/views/AlbumView.vue') },
+  { path: '/albums/:artist/:album', component: () => import('@/views/AlbumView.vue') },
   { path: '/artists', component: () => import('@/views/ArtistsView.vue') },
   { path: '/artists/:id', component: () => import('@/views/ArtistView.vue') },
   // { path: '/podcasts', component: () => import('@/views/PodcastsView.vue') },

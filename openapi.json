@@ -296,10 +296,10 @@
                 }
             }
         },
-        "/ocs/v2.php/apps/jukebox/api/albums/{id}": {
+        "/ocs/v2.php/apps/jukebox/api/albums/{artist}/{album}": {
             "get": {
                 "operationId": "api-get-album-by-id",
-                "summary": "Fetch a single album by its ID",
+                "summary": "Fetch a single album by its album & artist",
                 "description": "This endpoint requires admin access",
                 "tags": [
                     "api"
@@ -314,9 +314,18 @@
                 ],
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "artist",
                         "in": "path",
-                        "description": "Encoded album identifier (albumArtist|album)",
+                        "description": "Encoded artist identifier",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "album",
+                        "in": "path",
+                        "description": "Encoded album identifier",
                         "required": true,
                         "schema": {
                             "type": "string"

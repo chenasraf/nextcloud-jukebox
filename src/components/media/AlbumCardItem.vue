@@ -1,10 +1,12 @@
 <template>
-  <div class="album-card" :style="{ width }" @click="goToAlbum(album)">
+  <div class="album-card" :style="{ width }" @click="goToAlbum(album.albumArtist, album.album)">
     <img v-if="album.cover" :src="album.cover" alt="Cover" width="128" height="128" class="cover" />
     <Music v-else :size="128" />
     <div class="metadata">
       <div class="title">{{ album.album || 'Untitled Album' }}</div>
-      <div class="artist">{{ album.albumArtist || 'Unknown Artist' }}</div>
+      <a href="#" class="artist" @click.stop.prevent="goToArtist(album.albumArtist)">
+        {{ album.albumArtist || 'Unknown Artist' }}
+      </a>
       <div class="year" v-if="album.year">{{ album.year }}</div>
     </div>
   </div>
@@ -14,7 +16,9 @@
 import { defineComponent, type PropType } from 'vue'
 import type { Album } from '@/models/media'
 import { useRouter } from 'vue-router'
+import { useGoToAlbum, useGoToArtist } from '@/utils/routing'
 
+import NcButton from '@nextcloud/vue/components/NcButton'
 import Music from '@icons/Music.vue'
 
 export default defineComponent({
@@ -30,30 +34,29 @@ export default defineComponent({
     },
   },
   components: {
-    Music,
+    Music, NcButton
   },
   setup(props) {
-    const router = useRouter()
-
-    const goToAlbum = (album: Album) => {
-      const id = btoa(unescape(encodeURIComponent(`${album.albumArtist}|${album.album}`)))
-      router.push(`/albums/${id}`)
-    }
-
-    return { goToAlbum, width: props.width }
+    const goToAlbum = useGoToAlbum()
+    const goToArtist = useGoToArtist()
+    return { goToAlbum, goToArtist, width: props.width }
   },
 })
 </script>
 
 <style scoped lang="scss">
 .album-card {
-  cursor: pointer;
   padding: 0.75rem;
   border-radius: var(--border-radius-element);
   display: flex;
   flex-direction: column;
   align-items: start;
   transition: background 0.15s;
+
+  &,
+  & * {
+    cursor: pointer;
+  }
 
   &:hover {
     background-color: var(--color-background-hover);
@@ -70,10 +73,6 @@ export default defineComponent({
     .title {
       font-weight: bold;
       font-size: 1.1rem;
-    }
-
-    .artist {
-      color: var(--color-text-light);
     }
 
     .year {
