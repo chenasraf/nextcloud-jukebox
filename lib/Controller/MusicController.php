@@ -23,7 +23,7 @@ use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
-class ApiController extends OCSController {
+class MusicController extends OCSController {
 	public function __construct(
 		string $appName,
 		IRequest $request,
@@ -44,7 +44,7 @@ class ApiController extends OCSController {
 	 *
 	 * 200: List of media tracks for current user
 	 */
-	#[ApiRoute(verb: 'GET', url: '/api/tracks')]
+	#[ApiRoute(verb: 'GET', url: '/api/music/tracks')]
 	public function listTracks(): JSONResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -70,7 +70,7 @@ class ApiController extends OCSController {
 	 * 403: Track does not belong to current user
 	 * 404: Track file or record not found
 	 */
-	#[ApiRoute(verb: 'GET', url: '/api/tracks/{id}/stream')]
+	#[ApiRoute(verb: 'GET', url: '/api/music/tracks/{id}/stream')]
 	#[NoCSRFRequired]
 	public function streamTrack(int $id): FileDisplayResponse|JSONResponse {
 		$this->logger->info('Received request to stream track with ID: ' . $id);
@@ -115,7 +115,7 @@ class ApiController extends OCSController {
 	 *
 	 * 200: Grouped albums and their tracks
 	 */
-	#[ApiRoute(verb: 'GET', url: '/api/albums')]
+	#[ApiRoute(verb: 'GET', url: '/api/music/albums')]
 	public function listAlbums(): JSONResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -165,7 +165,7 @@ class ApiController extends OCSController {
 	 *
 	 * 200: Album and its tracks
 	 */
-	#[ApiRoute(verb: 'GET', url: '/api/albums/{artist}/{album}')]
+	#[ApiRoute(verb: 'GET', url: '/api/music/albums/{artist}/{album}')]
 	public function getAlbumById(string $artist, string $album): JSONResponse {
 		try {
 			$this->logger->debug('Received request to get album by artist: ' . $artist . ', album: ' . $album);
@@ -220,7 +220,7 @@ class ApiController extends OCSController {
 	 *
 	 * 200: List of unique artists
 	 */
-	#[ApiRoute(verb: 'GET', url: '/api/artists')]
+	#[ApiRoute(verb: 'GET', url: '/api/music/artists')]
 	public function listArtists(): JSONResponse {
 		try {
 			$user = $this->userSession->getUser();
@@ -251,7 +251,7 @@ class ApiController extends OCSController {
 	 *
 	 * 200: Artist details, their albums and tracks
 	 */
-	#[ApiRoute(verb: 'GET', url: '/api/artists/{id}')]
+	#[ApiRoute(verb: 'GET', url: '/api/music/artists/{id}')]
 	public function getArtistById(string $id): JSONResponse {
 		$this->logger->info('Received request to get artist by ID: ' . $id);
 		try {

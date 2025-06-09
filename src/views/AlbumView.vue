@@ -52,7 +52,7 @@ export default defineComponent({
       const artistId = decodeURIComponent(route.params.artist as string)
       const albumId = decodeURIComponent(route.params.album as string)
       try {
-        const res = await axios.get(`/albums/${artistId}/${albumId}`)
+        const res = await axios.get(`/music/albums/${artistId}/${albumId}`)
         album.value = res.data
       } catch (err) {
         console.error('Failed to load album:', err)

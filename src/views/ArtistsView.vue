@@ -29,7 +29,7 @@ export default defineComponent({
 
     onMounted(async () => {
       try {
-        const res = await axios.get('/artists')
+        const res = await axios.get('/music/artists')
         artists.value = res.data.artists
       } catch (err) {
         console.error('Failed to load artists:', err)

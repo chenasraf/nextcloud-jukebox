@@ -27,7 +27,7 @@ export default defineComponent({
 
     onMounted(async () => {
       try {
-        const res = await axios.get('/tracks')
+        const res = await axios.get('/music/tracks')
         tracks.value = res.data.tracks
       } catch (err) {
         console.error('Failed to load tracks:', err)

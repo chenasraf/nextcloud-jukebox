@@ -47,13 +47,13 @@
         }
     },
     "paths": {
-        "/ocs/v2.php/apps/jukebox/api/tracks": {
+        "/ocs/v2.php/apps/jukebox/api/music/tracks": {
             "get": {
-                "operationId": "api-list-tracks",
+                "operationId": "music-list-tracks",
                 "summary": "List all tracks for the current user",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "api"
+                    "music"
                 ],
                 "security": [
                     {
@@ -103,13 +103,13 @@
                 }
             }
         },
-        "/ocs/v2.php/apps/jukebox/api/tracks/{id}/stream": {
+        "/ocs/v2.php/apps/jukebox/api/music/tracks/{id}/stream": {
             "get": {
-                "operationId": "api-stream-track",
+                "operationId": "music-stream-track",
                 "summary": "Stream a track file for playback",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "api"
+                    "music"
                 ],
                 "security": [
                     {
@@ -210,13 +210,13 @@
                 }
             }
         },
-        "/ocs/v2.php/apps/jukebox/api/albums": {
+        "/ocs/v2.php/apps/jukebox/api/music/albums": {
             "get": {
-                "operationId": "api-list-albums",
+                "operationId": "music-list-albums",
                 "summary": "Fetch albums with grouped tracks for current user",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "api"
+                    "music"
                 ],
                 "security": [
                     {
@@ -296,13 +296,13 @@
                 }
             }
         },
-        "/ocs/v2.php/apps/jukebox/api/albums/{artist}/{album}": {
+        "/ocs/v2.php/apps/jukebox/api/music/albums/{artist}/{album}": {
             "get": {
-                "operationId": "api-get-album-by-id",
+                "operationId": "music-get-album-by-id",
                 "summary": "Fetch a single album by its album & artist",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "api"
+                    "music"
                 ],
                 "security": [
                     {
@@ -389,13 +389,13 @@
                 }
             }
         },
-        "/ocs/v2.php/apps/jukebox/api/artists": {
+        "/ocs/v2.php/apps/jukebox/api/music/artists": {
             "get": {
-                "operationId": "api-list-artists",
+                "operationId": "music-list-artists",
                 "summary": "Fetch a list of unique artists for the current user",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "api"
+                    "music"
                 ],
                 "security": [
                     {
@@ -460,13 +460,13 @@
                 }
             }
         },
-        "/ocs/v2.php/apps/jukebox/api/artists/{id}": {
+        "/ocs/v2.php/apps/jukebox/api/music/artists/{id}": {
             "get": {
-                "operationId": "api-get-artist-by-id",
+                "operationId": "music-get-artist-by-id",
                 "summary": "Fetch a single artist by their ID",
                 "description": "This endpoint requires admin access",
                 "tags": [
-                    "api"
+                    "music"
                 ],
                 "security": [
                     {

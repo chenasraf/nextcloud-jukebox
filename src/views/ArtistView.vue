@@ -51,7 +51,7 @@ export default defineComponent({
     onMounted(async () => {
       const id = decodeURIComponent(route.params.id as string)
       try {
-        const res = await axios.get(`/artists/${id}`)
+        const res = await axios.get(`/music/artists/${id}`)
         artist.value = res.data
       } catch (err) {
         console.error('Failed to load artist:', err)
