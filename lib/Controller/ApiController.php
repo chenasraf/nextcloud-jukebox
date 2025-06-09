@@ -171,12 +171,14 @@ class ApiController extends OCSController {
 			return new JSONResponse(['message' => 'Unauthenticated'], Http::STATUS_UNAUTHORIZED);
 		}
 
+		$this->logger->info('Received request to get album by ID: ' . $id, ['user' => $user->getUID()]);
 		$decoded = base64_decode($id, true);
 
 		if ($decoded === false || !mb_check_encoding($decoded, 'UTF-8')) {
 			return new JSONResponse(['message' => 'Invalid album ID encoding'], Http::STATUS_BAD_REQUEST);
 		}
 
+		$this->logger->info('Decoded album ID: ' . $decoded);
 		$parts = explode('|', $decoded, 2);
 		if (count($parts) !== 2) {
 			return new JSONResponse(['message' => 'Invalid album ID format'], Http::STATUS_BAD_REQUEST);
@@ -202,5 +204,106 @@ class ApiController extends OCSController {
 			'genre' => $first->getGenre() ?? '',
 			'tracks' => array_map(fn ($track) => $track->jsonSerialize(), $tracks),
 		]);
+	}
+
+	/**
+	 * Fetch a list of unique artists for the current user
+	 *
+	 * @return JSONResponse<Http::STATUS_OK, array{artists: list<array{
+	 *   name: string,
+	 *   cover: string|null,
+	 *   genre: string|null
+	 * }>}, array{}>
+	 *
+	 * 200: List of unique artists
+	 */
+	#[ApiRoute(verb: 'GET', url: '/api/artists')]
+	public function listArtists(): JSONResponse {
+		try {
+			$user = $this->userSession->getUser();
+			if (!$user) {
+				return new JSONResponse(['message' => 'Unauthenticated'], Http::STATUS_UNAUTHORIZED);
+			}
+
+			$artists = $this->mediaMapper->listGroupedArtists($user->getUID());
+
+			return new JSONResponse(['artists' => $artists]);
+		} catch (\Exception $e) {
+			$this->logger->error('Failed to list artists', ['exception' => $e]);
+			return new JSONResponse(['message' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 * Fetch a single artist by their ID
+	 *
+	 * @param string $id Base64-encoded artist name
+	 *
+	 * @return JSONResponse<Http::STATUS_OK, array{
+	 *     name: string,
+	 *     cover: string|null,
+	 *     genre: string|null,
+	 *     tracks: list<array<string, mixed>>
+	 * }, array{}>
+	 *
+	 * 200: Artist details, their albums and tracks
+	 */
+	#[ApiRoute(verb: 'GET', url: '/api/artists/{id}')]
+	public function getArtistById(string $id): JSONResponse {
+		$this->logger->info('Received request to get artist by ID: ' . $id);
+		try {
+			$user = $this->userSession->getUser();
+			if (!$user) {
+				return new JSONResponse(['message' => 'Unauthenticated'], Http::STATUS_UNAUTHORIZED);
+			}
+
+			$this->logger->info('Getting artist by ID', ['id' => $id, 'user' => $user->getUID()]);
+			$decoded = base64_decode($id, true);
+
+			if ($decoded === false || !mb_check_encoding($decoded, 'UTF-8')) {
+				$this->logger->warning('Invalid artist ID encoding', ['id' => $id]);
+				return new JSONResponse(['message' => 'Invalid artist ID encoding'], Http::STATUS_BAD_REQUEST);
+			}
+
+			$this->logger->info('Looking up artist', ['artist' => $decoded]);
+
+			$tracks = $this->mediaMapper->findByArtist($user->getUID(), $decoded);
+
+			if (empty($tracks)) {
+				$this->logger->warning('Artist not found', ['artist' => $decoded]);
+				return new JSONResponse(['message' => 'Artist not found'], Http::STATUS_NOT_FOUND);
+			}
+
+			$first = $tracks[0];
+
+			// Group albums by "album_artist|album"
+			$albums = [];
+			foreach ($tracks as $track) {
+				$album = $track->getAlbum() ?? '';
+				$albumArtist = $track->getAlbumArtist() ?? $track->getArtist() ?? '';
+				$key = $albumArtist . '|' . $album;
+
+				if (!isset($albums[$key])) {
+					$albums[$key] = [
+						'album' => $album,
+						'albumArtist' => $albumArtist,
+						'year' => $track->getYear(),
+						'cover' => $track->getAlbumArtBase64(),
+						'genre' => $track->getGenre() ?? null,
+					];
+				}
+			}
+
+			return new JSONResponse([
+				'name' => $decoded,
+				'cover' => $first->getAlbumArtBase64(),
+				'genre' => $first->getGenre() ?? '',
+				'tracks' => array_map(fn ($track) => $track->jsonSerialize(), $tracks),
+				'albums' => array_values($albums),
+			]);
+		} catch (\Exception $e) {
+			$this->logger->error('Failed to get artist by ID', ['exception' => $e]);
+			return new JSONResponse(['message' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
 	}
 }

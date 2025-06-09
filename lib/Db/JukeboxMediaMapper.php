@@ -11,6 +11,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use Psr\Log\LoggerInterface;
 
 /**
  * @template-extends QBMapper<JukeboxMedia>
@@ -18,6 +19,7 @@ use OCP\IDBConnection;
 class JukeboxMediaMapper extends QBMapper {
 	public function __construct(
 		IDBConnection $db,
+		private LoggerInterface $logger,
 	) {
 		parent::__construct($db, Application::tableName('media'), JukeboxMedia::class);
 	}
@@ -160,5 +162,67 @@ class JukeboxMediaMapper extends QBMapper {
 		} catch (DoesNotExistException) {
 			return null;
 		}
+	}
+
+	/**
+	 * Group media entries by artist name for the current user.
+	 *
+	 * @param string $userId
+	 * @return array<array{name: string, cover: string|null, genre: string|null}>
+	 */
+	public function listGroupedArtists(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+		$expr = $qb->expr();
+
+		$qb->selectAlias(
+			$qb->createFunction('COALESCE(`album_artist`, `artist`)'),
+			'name'
+		)
+			->selectAlias($qb->createFunction('MIN(`album_art`)'), 'album_art')
+			->selectAlias($qb->createFunction('MIN(`genre`)'), 'genre')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->andX(
+					$expr->eq('user_id', $qb->createNamedParameter($userId)),
+					$expr->isNotNull('artist'),
+					$expr->neq('artist', $qb->createNamedParameter('')))
+			)
+			->orderBy('name')
+			->groupBy('name');
+
+		$stmt = $qb->executeQuery();
+		$results = [];
+
+		while ($row = $stmt->fetch()) {
+			$results[] = [
+				'name' => $row['name'],
+				'cover' => $this->getImageBlobBase64($row['album_art']),
+				'genre' => $row['genre'] ?? null,
+			];
+		}
+
+		$stmt->closeCursor();
+		return $results;
+	}
+
+	/**
+	 * Returns the base64-encoded version of an image blob
+	 *
+	 * @param string|null $image An image blob, typically from the database
+	 * @return string|null data URI like 'data:image/jpeg;base64,...' or null if no art
+	 */
+	private function getImageBlobBase64(?string $image): ?string {
+		if ($image === '' || $image === null) {
+			return null; // No image data
+		}
+		// Attempt to detect MIME type, fallback to jpeg
+		$mime = 'image/jpeg';
+		if (str_starts_with($image, "\x89PNG")) {
+			$mime = 'image/png';
+		} elseif (str_starts_with($image, 'GIF')) {
+			$mime = 'image/gif';
+		}
+
+		return 'data:' . $mime . ';base64,' . base64_encode($image);
 	}
 }
