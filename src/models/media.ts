@@ -31,4 +31,6 @@ export interface Artist {
   name: string
   cover: string | null
   genre: string | null
+  albums: Album[]
+  tracks: Media[]
 }

@@ -31,7 +31,7 @@
 import { defineComponent, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { axios } from '@/axios'
-import type { Media } from '@/models/media'
+import type { Media, Artist } from '@/models/media'
 
 import Page from '@/components/Page.vue'
 import MediaListItem from '@/components/media/MediaListItem.vue'
@@ -44,7 +44,7 @@ export default defineComponent({
   components: { Page, MediaListItem, AlbumCardItem, Music },
   setup() {
     const route = useRoute()
-    const artist = ref<any>(null)
+    const artist = ref<Artist | null>(null)
     const isLoading = ref(true)
     const { overwriteQueue } = playback
 
@@ -62,7 +62,7 @@ export default defineComponent({
 
     const handlePlay = (track: Media) => {
       if (artist.value) {
-        const index = artist.value.tracks.findIndex(t => t.id === track.id)
+        const index = artist.value.tracks.findIndex((t) => t.id === track.id)
         if (index !== -1) {
           overwriteQueue([...artist.value.tracks], index)
         }
