@@ -11,7 +11,7 @@ const routes: RouteRecordRaw[] = [
   // { path: '/audiobooks', component: () => import('@/views/AudiobooksView.vue') },
   // { path: '/videos', component: () => import('@/views/VideosView.vue') },
   // { path: '/genres', component: () => import('@/views/GenresView.vue') },
-  // { path: '/radio', component: () => import('@/views/RadioView.vue') },
+  { path: '/radio', component: () => import('@/views/RadioStationsView.vue') },
 ]
 
 const router = createRouter({

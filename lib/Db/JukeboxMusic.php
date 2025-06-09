@@ -12,8 +12,6 @@ use OCP\AppFramework\Db\Entity;
 /**
  * @method int getId()
  * @method void setId(int $id)
- * @method string getMediaType()
- * @method void setMediaType(string $mediaType)
  * @method string getPath()
  * @method void setPath(string $path)
  * @method string|null getTitle()
@@ -42,11 +40,12 @@ use OCP\AppFramework\Db\Entity;
  * @method void setUserId(string $userId)
  * @method int getMtime()
  * @method void setMtime(int $mtime)
- * @method string|null getRawId3()
- * @method void setRawId3(?string $rawId3)
+ * @method string|null getRawData()
+ * @method void setRawData(?string $rawData)
+ * @method bool isFavorited()
+ * @method void setFavorited(bool $favorited)
  */
-class JukeboxMedia extends Entity implements JsonSerializable {
-	protected string $mediaType = 'track';
+class JukeboxMusic extends Entity implements JsonSerializable {
 	protected string $path = '';
 	protected ?string $title = null;
 	protected ?int $trackNumber = null;
@@ -61,7 +60,8 @@ class JukeboxMedia extends Entity implements JsonSerializable {
 	protected ?string $codec = null;
 	protected string $userId = '';
 	protected int $mtime = 0;
-	protected ?string $rawId3 = null;
+	protected ?string $rawData = null;
+	protected bool $favorited = false;
 
 	/**
 	 * Returns the base64-encoded version of the album art blob
@@ -87,7 +87,6 @@ class JukeboxMedia extends Entity implements JsonSerializable {
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->id,
-			'mediaType' => $this->mediaType,
 			'path' => $this->path,
 			'title' => $this->title,
 			'trackNumber' => $this->trackNumber,
@@ -102,7 +101,8 @@ class JukeboxMedia extends Entity implements JsonSerializable {
 			'codec' => $this->codec,
 			'userId' => $this->userId,
 			'mtime' => $this->mtime,
-			'rawId3' => $this->rawId3,
+			'rawData' => $this->rawData,
+			'favorited' => $this->favorited,
 		];
 	}
 }

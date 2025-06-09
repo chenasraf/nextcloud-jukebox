@@ -6,8 +6,8 @@ namespace OCA\Jukebox\Service;
 
 use getID3;
 use OCA\Jukebox\AppInfo\Application;
-use OCA\Jukebox\Db\JukeboxMedia;
-use OCA\Jukebox\Db\JukeboxMediaMapper;
+use OCA\Jukebox\Db\JukeboxMusic;
+use OCA\Jukebox\Db\JukeboxMusicMapper;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -18,11 +18,11 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
- * Class MusicScanner
+ * Class MusicScannerService
  *
  * Scans user folders for audio files and extracts metadata such as artist, album, and title.
  */
-class MusicScanner {
+class MusicScannerService {
 	private IRootFolder $rootFolder;
 	private IUserSession $userSession;
 
@@ -31,7 +31,7 @@ class MusicScanner {
 		IUserSession $userSession,
 		private LoggerInterface $logger,
 		private IAppConfig $appConfig,
-		private JukeboxMediaMapper $mediaMapper,
+		private JukeboxMusicMapper $musicMapper,
 		private IDBConnection $db,
 	) {
 		$this->rootFolder = $rootFolder;
@@ -169,13 +169,12 @@ class MusicScanner {
 			$album = $info['tags']['id3v2']['album'][0] ?? '';
 
 			// Check for existing
-			$existing = $this->mediaMapper->findByUserIdAndPath($userId, $path);
-			$media = $existing ?? new JukeboxMedia();
+			$existing = $this->musicMapper->findByUserIdAndPath($userId, $path);
+			$media = $existing ?? new JukeboxMusic();
 
 			$media->setUserId($userId);
 			$media->setPath($path);
 			$media->setMtime($mtime);
-			$media->setMediaType('track');
 			$media->setTitle($title);
 			$media->setArtist($trackArtist);
 			$media->setAlbumArtist($albumArtist);
@@ -192,9 +191,9 @@ class MusicScanner {
 			}
 
 			$sanitizedInfo = $this->sanitizeForJson($info);
-			$rawId3 = json_encode($sanitizedInfo);
-			if ($rawId3 !== false) {
-				$media->setRawId3($rawId3);
+			$rawData = json_encode($sanitizedInfo);
+			if ($rawData !== false) {
+				$media->setRawData($rawData);
 			} else {
 				$this->logger->warning("Failed to encode ID3 data for file '{$file->getPath()}'");
 				if (json_last_error() !== JSON_ERROR_NONE) {
@@ -203,9 +202,9 @@ class MusicScanner {
 			}
 
 			if ($existing) {
-				$this->mediaMapper->update($media);
+				$this->musicMapper->update($media);
 			} else {
-				$this->mediaMapper->insert($media);
+				$this->musicMapper->insert($media);
 			}
 
 			$this->logger->info("Saved metadata for '$path'");

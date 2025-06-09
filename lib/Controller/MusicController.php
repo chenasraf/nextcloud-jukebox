@@ -7,7 +7,7 @@ declare(strict_types=1);
 
 namespace OCA\Jukebox\Controller;
 
-use OCA\Jukebox\Db\JukeboxMediaMapper;
+use OCA\Jukebox\Db\JukeboxMusicMapper;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -29,7 +29,7 @@ class MusicController extends OCSController {
 		IRequest $request,
 		private IAppConfig $config,
 		private IL10N $l,
-		private JukeboxMediaMapper $mediaMapper,
+		private JukeboxMusicMapper $musicMapper,
 		private IUserSession $userSession,
 		private IRootFolder $rootFolder,
 		private LoggerInterface $logger,
@@ -51,7 +51,7 @@ class MusicController extends OCSController {
 			return new JSONResponse(['message' => 'Unauthenticated'], Http::STATUS_UNAUTHORIZED);
 		}
 
-		$tracks = $this->mediaMapper->findByMediaType($user->getUID(), 'track');
+		$tracks = $this->musicMapper->findByUserId($user->getUID());
 		return new JSONResponse(['tracks' => array_map(fn ($t) => $t->jsonSerialize(), $tracks)]);
 	}
 
@@ -83,7 +83,7 @@ class MusicController extends OCSController {
 		$this->logger->info('Streaming track with ID: ' . $id, ['user' => $user->getUID()]);
 
 		try {
-			$media = $this->mediaMapper->find((string)$id);
+			$media = $this->musicMapper->find((string)$id);
 			if ($media->getUserId() !== $user->getUID()) {
 				return new JSONResponse(['message' => 'Forbidden'], Http::STATUS_FORBIDDEN);
 			}
@@ -122,7 +122,7 @@ class MusicController extends OCSController {
 			return new JSONResponse(['message' => 'Unauthenticated'], Http::STATUS_UNAUTHORIZED);
 		}
 
-		$tracks = $this->mediaMapper->findByMediaType($user->getUID(), 'track');
+		$tracks = $this->musicMapper->findByUserId($user->getUID());
 
 		$albums = [];
 
@@ -187,7 +187,7 @@ class MusicController extends OCSController {
 
 			$this->logger->debug('Looking up album', ['artist' => $decodedArtist, 'album' => $decodedAlbum]);
 
-			$tracks = $this->mediaMapper->findByAlbum($user->getUID(), $decodedArtist, $decodedAlbum);
+			$tracks = $this->musicMapper->findByAlbum($user->getUID(), $decodedArtist, $decodedAlbum);
 
 			if (empty($tracks)) {
 				return new JSONResponse(['message' => 'Album not found'], Http::STATUS_NOT_FOUND);
@@ -228,7 +228,7 @@ class MusicController extends OCSController {
 				return new JSONResponse(['message' => 'Unauthenticated'], Http::STATUS_UNAUTHORIZED);
 			}
 
-			$artists = $this->mediaMapper->listGroupedArtists($user->getUID());
+			$artists = $this->musicMapper->listGroupedArtists($user->getUID());
 
 			return new JSONResponse(['artists' => $artists]);
 		} catch (\Exception $e) {
@@ -270,7 +270,7 @@ class MusicController extends OCSController {
 
 			$this->logger->info('Looking up artist', ['artist' => $decoded]);
 
-			$tracks = $this->mediaMapper->findByArtist($user->getUID(), $decoded);
+			$tracks = $this->musicMapper->findByArtist($user->getUID(), $decoded);
 
 			if (empty($tracks)) {
 				$this->logger->warning('Artist not found', ['artist' => $decoded]);

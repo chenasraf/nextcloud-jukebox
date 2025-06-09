@@ -12,6 +12,10 @@ export function getAlbumPath(artist: string, album: string): string {
   return `/albums/${hashedPath(artist)}/${hashedPath(album)}`;
 }
 
+export function getRadioStationPath(uuid: string): string {
+  return `/radio/${uuid}`;
+}
+
 export function useGoToRoute() {
   const router = useRouter()
 
@@ -30,3 +34,7 @@ export function useGoToArtist() {
   return (artist: string) => goToRoute(getArtistPath(artist))
 }
 
+export function useGoToRadioStation() {
+  const goToRoute = useGoToRoute()
+  return (uuid: string) => goToRoute(getRadioStationPath(uuid))
+}

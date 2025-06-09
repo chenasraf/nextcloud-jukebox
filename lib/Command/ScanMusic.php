@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Jukebox\Command;
 
-use OCA\Jukebox\Service\MusicScanner;
+use OCA\Jukebox\Service\MusicScannerService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -17,7 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ScanMusic extends Command {
 	public function __construct(
-		private MusicScanner $service,
+		private MusicScannerService $service,
 	) {
 		parent::__construct();
 	}

@@ -1,6 +1,5 @@
 export interface Media {
   id: number
-  mediaType: string
   path: string
   title: string | null
   trackNumber: number | null
@@ -15,7 +14,31 @@ export interface Media {
   codec: string | null
   userId: string
   mtime: number
-  rawId3: string | null
+  rawData: string | null
+  remoteUuid: string | null
+  homepage: string | null
+  favicon: string | null
+  country: string | null
+  state: string | null
+  language: string | null
+}
+
+export interface RadioStation {
+  id: number
+  remoteUuid: string
+  name: string
+  streamUrl: string
+  homepage: string | null
+  country: string | null
+  state: string | null
+  language: string | null
+  tags: string | null
+  codec: string | null
+  bitrate: number | null
+  favicon: string | null
+  rawData: string | null
+  favorited: boolean
+  lastUpdated: number
 }
 
 export interface Album {

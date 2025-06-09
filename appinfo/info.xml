@@ -5,9 +5,9 @@
 		SPDX-License-Identifier: CC0-1.0
 	-->
 	<id>jukebox</id>
-	<name lang="en">Jukebox</name>
-	<summary lang="en">Stream and organize all your audio content in one place.</summary>
-	<description lang="en"><![CDATA[
+	<name>Jukebox</name>
+	<summary>Stream and organize all your audio content in one place.</summary>
+	<description><![CDATA[
 **Jukebox** is a Nextcloud app for streaming and organizing all your audio content in one place.
 It supports music files, podcasts (with gPodder sync), audiobooks, YouTube videos, and online radio.
 
@@ -46,6 +46,7 @@ It supports music files, podcasts (with gPodder sync), audiobooks, YouTube video
 
 	<commands>
 		<command>OCA\Jukebox\Command\ScanMusic</command>
+		<command>OCA\Jukebox\Command\ImportRadioStations</command>
 	</commands>
 
 	<settings>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Jukebox\Cron;
 
+use OCA\Jukebox\Service\MusicScannerService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
@@ -12,7 +13,7 @@ use Psr\Log\LoggerInterface;
 class MusicScannerJob extends TimedJob {
 	public function __construct(
 		private ITimeFactory $time,
-		private MusicScanner $service,
+		private MusicScannerService $service,
 		private LoggerInterface $logger,
 	) {
 		parent::__construct($time);

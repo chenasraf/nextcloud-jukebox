@@ -18,7 +18,10 @@
             <Album :size="20" />
           </template>
         </NcAppNavigationItem>
-        <NcAppNavigationItem name="Artists" :to="{ path: '/artists' }">
+        <NcAppNavigationItem
+          name="Artists"
+          :to="{ path: '/artists' }"
+          :active="isPrefixRoute('/artists')">
           <template #icon>
             <AccountMusic :size="20" />
           </template>
@@ -43,7 +46,10 @@
             <Filmstrip :size="20" />
           </template>
         </NcAppNavigationItem>
-        <NcAppNavigationItem name="Radio" :to="{ path: '/radio' }">
+        <NcAppNavigationItem
+          name="Radio"
+          :to="{ path: '/radio' }"
+          :active="isPrefixRoute('/radio')">
           <template #icon>
             <RadioTower :size="20" />
           </template>

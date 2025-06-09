@@ -14,21 +14,21 @@ use OCP\IDBConnection;
 use Psr\Log\LoggerInterface;
 
 /**
- * @template-extends QBMapper<JukeboxMedia>
+ * @template-extends QBMapper<JukeboxMusic>
  */
-class JukeboxMediaMapper extends QBMapper {
+class JukeboxMusicMapper extends QBMapper {
 	public function __construct(
 		IDBConnection $db,
 		private LoggerInterface $logger,
 	) {
-		parent::__construct($db, Application::tableName('media'), JukeboxMedia::class);
+		parent::__construct($db, Application::tableName('music'), JukeboxMusic::class);
 	}
 
 	/**
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException
 	 * @throws DoesNotExistException
 	 */
-	public function find(string $id): JukeboxMedia {
+	public function find(string $id): JukeboxMusic {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
 			->from($this->getTableName())
@@ -39,7 +39,24 @@ class JukeboxMediaMapper extends QBMapper {
 	}
 
 	/**
-	 * @return array<JukeboxMedia>
+	 * Find all music entries for a specific user
+	 *
+	 * @param string $userId
+	 * @return array<JukeboxMusic>
+	 */
+	public function findByUserId(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('user_id', $qb->createNamedParameter($userId))
+			);
+
+		return $this->findEntities($qb);
+	}
+
+	/**
+	 * @return array<JukeboxMusic>
 	 */
 	public function findAll(): array {
 		$qb = $this->db->getQueryBuilder();
@@ -49,29 +66,10 @@ class JukeboxMediaMapper extends QBMapper {
 
 	/**
 	 * @param string $userId
-	 * @param string $mediaType
-	 * @return array<JukeboxMedia>
-	 */
-	public function findByMediaType(string $userId, string $mediaType): array {
-		$qb = $this->db->getQueryBuilder();
-		$qb->select('*')
-			->from($this->getTableName())
-			->where(
-				$qb->expr()->andX(
-					$qb->expr()->eq('user_id', $qb->createNamedParameter($userId)),
-					$qb->expr()->eq('media_type', $qb->createNamedParameter($mediaType))
-				)
-			);
-		return $this->findEntities($qb);
-	}
-
-	/**
-	 * @param string $userId
-	 * @param string|null $mediaType
 	 * @param string $query
-	 * @return array<JukeboxMedia>
+	 * @return array<JukeboxMusic>
 	 */
-	public function searchMedia(string $userId, ?string $mediaType, string $query): array {
+	public function searchMusic(string $userId, string $query): array {
 		$qb = $this->db->getQueryBuilder();
 		$expr = $qb->expr();
 
@@ -81,27 +79,23 @@ class JukeboxMediaMapper extends QBMapper {
 			$expr->iLike('album', $qb->createNamedParameter('%' . $query . '%'))
 		);
 
-		$conditions = [
-			$expr->eq('user_id', $qb->createNamedParameter($userId)),
-			$searchExpr,
-		];
-
-		if ($mediaType !== null) {
-			$conditions[] = $expr->eq('media_type', $qb->createNamedParameter($mediaType));
-		}
-
 		$qb->select('*')
 			->from($this->getTableName())
-			->where($expr->andX(...$conditions));
+			->where(
+				$expr->andX(
+					$expr->eq('user_id', $qb->createNamedParameter($userId)),
+					$searchExpr
+				)
+			);
 
 		return $this->findEntities($qb);
 	}
 
 	/**
 	 * @param string $userId
-	 * @param string $albumArtist
+	 * @param string $artist
 	 * @param string $album
-	 * @return array<JukeboxMedia>
+	 * @return array<JukeboxMusic>
 	 */
 	public function findByAlbum(string $userId, string $artist, string $album): array {
 		$qb = $this->db->getQueryBuilder();
@@ -120,7 +114,7 @@ class JukeboxMediaMapper extends QBMapper {
 	/**
 	 * @param string $userId
 	 * @param string $artist
-	 * @return array<JukeboxMedia>
+	 * @return array<JukeboxMusic>
 	 */
 	public function findByArtist(string $userId, string $artist): array {
 		$qb = $this->db->getQueryBuilder();
@@ -143,9 +137,9 @@ class JukeboxMediaMapper extends QBMapper {
 	/**
 	 * @param string $userId
 	 * @param string $path
-	 * @return JukeboxMedia|null
+	 * @return JukeboxMusic|null
 	 */
-	public function findByUserIdAndPath(string $userId, string $path): ?JukeboxMedia {
+	public function findByUserIdAndPath(string $userId, string $path): ?JukeboxMusic {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
 			->from($this->getTableName())
@@ -185,7 +179,8 @@ class JukeboxMediaMapper extends QBMapper {
 				$qb->expr()->andX(
 					$expr->eq('user_id', $qb->createNamedParameter($userId)),
 					$expr->isNotNull('artist'),
-					$expr->neq('artist', $qb->createNamedParameter('')))
+					$expr->neq('artist', $qb->createNamedParameter(''))
+				)
 			)
 			->orderBy('name')
 			->groupBy('name');
@@ -213,16 +208,14 @@ class JukeboxMediaMapper extends QBMapper {
 	 */
 	private function getImageBlobBase64(?string $image): ?string {
 		if ($image === '' || $image === null) {
-			return null; // No image data
+			return null;
 		}
-		// Attempt to detect MIME type, fallback to jpeg
 		$mime = 'image/jpeg';
 		if (str_starts_with($image, "\x89PNG")) {
 			$mime = 'image/png';
 		} elseif (str_starts_with($image, 'GIF')) {
 			$mime = 'image/gif';
 		}
-
 		return 'data:' . $mime . ';base64,' . base64_encode($image);
 	}
 }
