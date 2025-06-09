@@ -47,11 +47,12 @@ class JukeboxRadioStationMapper extends QBMapper {
 	 * @param string $remoteUuid
 	 * @return JukeboxRadioStation|null
 	 */
-	public function findByRemoteUuid(string $remoteUuid): ?JukeboxRadioStation {
+	public function findByRemoteUuid(string $userId, string $remoteUuid): ?JukeboxRadioStation {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
 			->from($this->getTableName())
-			->where($qb->expr()->eq('remote_uuid', $qb->createNamedParameter($remoteUuid)))
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->eq('remote_uuid', $qb->createNamedParameter($remoteUuid)))
 			->setMaxResults(1);
 
 		try {

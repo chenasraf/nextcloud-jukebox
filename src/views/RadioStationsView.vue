@@ -10,21 +10,28 @@
 
     <div v-if="searchTerm.trim()">
       <h4>Search Results</h4>
-      <RadioStationCardItem v-for="station in searchResults" :key="station.remoteUuid" :station="station"
-        @click="goToStation(station.remoteUuid)" />
+      <div class="radio-station-list">
+        <RadioStationCardItem v-for="station in searchResults" :key="station.remoteUuid" :station="station"
+          @click="goToStation(station.remoteUuid)" @add="addStation(station)" />
+      </div>
     </div>
 
     <div v-else>
       <div v-if="favorites.length">
         <h4>Favorites</h4>
-        <RadioStationCardItem v-for="station in favorites" :key="station.remoteUuid" :station="station"
-          @click="goToStation(station.remoteUuid)" />
+        <div class="radio-station-list">
+          <RadioStationCardItem v-for="station in favorites" :key="station.remoteUuid" :station="station"
+            @click="goToStation(station.remoteUuid)" @unfavorite="setFavorite(station, false)" />
+        </div>
       </div>
 
       <div v-if="stations.length">
         <h4>My Stations</h4>
-        <RadioStationCardItem v-for="station in stations" :key="station.remoteUuid" :station="station"
-          @click="goToStation(station.remoteUuid)" />
+        <div class="radio-station-list">
+          <RadioStationCardItem v-for="station in stations" :key="station.remoteUuid" :station="station"
+            @click="goToStation(station.remoteUuid)" @favorite="setFavorite(station, true)"
+            @unfavorite="setFavorite(station, false)" />
+        </div>
       </div>
 
       <div v-if="!favorites.length && !stations.length" class="empty-state">
@@ -84,6 +91,34 @@ export default defineComponent({
       }
     }
 
+    const addStation = async (station: RadioStation) => {
+      try {
+        stations.value.unshift(station)
+        const index = searchResults.value.findIndex(s => s.remoteUuid === station.remoteUuid)
+        if (index !== -1) {
+          searchResults.value[index] = station
+        }
+      } catch (err) {
+        console.error('Failed to add radio station:', err)
+      }
+    }
+
+    const setFavorite = async (station: RadioStation, favorited: boolean) => {
+      try {
+        station.favorited = favorited
+        if (favorited) {
+          favorites.value.unshift(station)
+        } else {
+          const index = favorites.value.findIndex(s => s.remoteUuid === station.remoteUuid)
+          if (index !== -1) {
+            favorites.value.splice(index, 1)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to favorite radio station:', err)
+      }
+    }
+
     const handleSearch = async () => {
       if (!searchTerm.value.trim()) {
         searchResults.value = []
@@ -117,6 +152,8 @@ export default defineComponent({
       isLoading,
       handleSearch,
       goToStation,
+      addStation,
+      setFavorite,
     }
   },
 })
@@ -131,5 +168,10 @@ export default defineComponent({
   text-align: center;
   color: var(--color-text-maxcontrast);
   font-style: italic;
+}
+
+.radio-station-list {
+  display: flex;
+  flex-wrap: wrap;
 }
 </style>

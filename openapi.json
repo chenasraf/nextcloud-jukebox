@@ -613,6 +613,79 @@
                         }
                     }
                 }
+            },
+            "post": {
+                "operationId": "radio-add-by-uuid",
+                "summary": "Add a radio station to the database",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "radio"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "station"
+                                ],
+                                "properties": {
+                                    "station": {
+                                        "type": "object",
+                                        "description": "Data to add the station",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Station was added successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "station"
+                                    ],
+                                    "properties": {
+                                        "station": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/ocs/v2.php/apps/jukebox/api/radio/favorites": {
@@ -756,10 +829,10 @@
                 }
             }
         },
-        "/ocs/v2.php/apps/jukebox/api/radio/add/{uuid}": {
-            "post": {
-                "operationId": "radio-add-by-uuid",
-                "summary": "Add a radio station to the database by UUID",
+        "/ocs/v2.php/apps/jukebox/api/radio/{uuid}": {
+            "get": {
+                "operationId": "radio-get-by-uuid",
+                "summary": "List all favorited radio stations for current user, paginated",
                 "description": "This endpoint requires admin access",
                 "tags": [
                     "radio"
@@ -776,7 +849,91 @@
                     {
                         "name": "uuid",
                         "in": "path",
-                        "description": "Unique identifier for the radio station from Radio Browser",
+                        "description": "UUID of the radio station",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Radio station returned",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "station"
+                                    ],
+                                    "properties": {
+                                        "station": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/jukebox/api/radio/stations/{uuid}": {
+            "put": {
+                "operationId": "radio-update-by-uuid",
+                "summary": "Update an existing radio station by UUID",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "radio"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "station"
+                                ],
+                                "properties": {
+                                    "station": {
+                                        "type": "object",
+                                        "description": "Data to add the station",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the station to update",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -801,11 +958,14 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "message"
+                                        "station"
                                     ],
                                     "properties": {
-                                        "message": {
-                                            "type": "string"
+                                        "station": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "object"
+                                            }
                                         }
                                     }
                                 }

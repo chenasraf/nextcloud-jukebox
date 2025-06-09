@@ -35,7 +35,7 @@ class {{pascalCase name}}Controller extends OCSController {
 	 *
 	 * 200: Data returned
 	 */
-	#[ApiRoute(verb: 'GET', url: '/{{kebabCase name}}')]
+	#[ApiRoute(verb: 'GET', url: '/api/{{kebabCase name}}')]
 	public function index(): JSONResponse {
 		return new JSONResponse();
 	}

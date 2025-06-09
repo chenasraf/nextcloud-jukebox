@@ -18,6 +18,7 @@ use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
+use Psr\Log\LoggerInterface;
 
 class RadioController extends OCSController {
 	public function __construct(
@@ -28,6 +29,7 @@ class RadioController extends OCSController {
 		private JukeboxRadioStationMapper $stationMapper,
 		private IUserSession $userSession,
 		private IClientService $httpClientService,
+		private LoggerInterface $logger,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -121,36 +123,138 @@ class RadioController extends OCSController {
 	}
 
 	/**
-	 * Add a radio station to the database by UUID
+	 * List all favorited radio stations for current user, paginated
 	 *
-	 * @param string $uuid Unique identifier for the radio station from Radio Browser
-	 * @return JSONResponse<Http::STATUS_OK, array{message: string}, array{}>
+	 * @param string $uuid UUID of the radio station
+	 * @return JSONResponse<Http::STATUS_OK, array{station: array<string, mixed>}, array{}>
+	 *
+	 * 200: Radio station returned
+	 */
+	#[ApiRoute(verb: 'GET', url: '/api/radio/{uuid}')]
+	public function getByUuid(string $uuid): JSONResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new JSONResponse(['message' => 'Unauthenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+
+		$stations = $this->stationMapper->findByRemoteUuid($user->getUID(), $uuid);
+		return new JSONResponse(['stations' => array_map(fn ($s) => $s->jsonSerialize(), $stations)]);
+	}
+
+	/**
+	 * Add a radio station to the database
+	 *
+	 * @param array<string, mixed> $station Data to add the station
+	 * @return JSONResponse<Http::STATUS_OK, array{station: array<string, mixed>}, array{}>
 	 *
 	 * 200: Station was added successfully
 	 */
-	#[ApiRoute(verb: 'POST', url: '/api/radio/add/{uuid}')]
-	public function addByUuid(string $uuid): JSONResponse {
+	#[ApiRoute(verb: 'POST', url: '/api/radio/stations')]
+	public function addByUuid(array $station): JSONResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new JSONResponse(['message' => 'Unauthenticated'], Http::STATUS_UNAUTHORIZED);
 		}
 
 		try {
-			$client = $this->httpClientService->newClient();
-			$response = $client->get('http://de2.api.radio-browser.info/json/stations/byuuid/' . urlencode($uuid), [
-				'headers' => [
-					'User-Agent' => 'Nextcloud-Jukebox/1.0 (+https://github.com/chenasraf/nextcloud-jukebox)'
-				],
-			]);
-			$data = json_decode($response->getBody(), true, 512, JSON_THROW_ON_ERROR);
-			if (empty($data[0])) {
-				return new JSONResponse(['message' => 'Station not found'], Http::STATUS_NOT_FOUND);
+			$stationEntity = new JukeboxRadioStation();
+			$stationEntity->setUserId($user->getUID());
+			$stationEntity->setRemoteUuid($station['remoteUuid']);
+			$stationEntity->setName($station['name'] ?? '');
+			$stationEntity->setStreamUrl($station['streamUrl'] ?? '');
+			$stationEntity->setHomepage($station['homepage'] ?? null);
+			$stationEntity->setCountry($station['country'] ?? null);
+			$stationEntity->setState($station['state'] ?? null);
+			$stationEntity->setLanguage($station['language'] ?? null);
+			$stationEntity->setBitrate($station['bitrate'] ?? null);
+			$stationEntity->setCodec($station['codec'] ?? null);
+			$stationEntity->setTags($station['tags'] ?? null);
+			$stationEntity->setLastUpdated(time());
+
+			unset($station['rawData']);
+			unset($station['favorited']);
+
+			$stationEntity->setRawData(json_encode($station, JSON_THROW_ON_ERROR));
+
+			$this->stationMapper->insert($stationEntity);
+
+			return new JSONResponse(['station' => $stationEntity->jsonSerialize()]);
+		} catch (\Throwable $e) {
+			$this->logger->error('Failed to add station', ['exception' => $e]);
+			return new JSONResponse(['message' => 'Failed to add station'], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 * Update an existing radio station by UUID
+	 *
+	 * @param string $uuid UUID of the station to update
+	 * @param array<string, mixed> $station Data to add the station
+	 * @return JSONResponse<Http::STATUS_OK, array{station: array<string, mixed>}, array{}>
+	 *
+	 * 200: Station was added successfully
+	 */
+	#[ApiRoute(verb: 'PUT', url: '/api/radio/stations/{uuid}')]
+	public function updateByUuid(string $uuid, array $station): JSONResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new JSONResponse(['message' => 'Unauthenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+
+		try {
+			$stationEntity = $this->stationMapper->findByRemoteUuid($user->getUID(), $uuid);
+			$modified = false;
+
+			if (isset($station['name'])) {
+				$stationEntity->setName($station['name'] ?? '');
+				$modified = true;
+			}
+			if (isset($station['streamUrl'])) {
+				$stationEntity->setStreamUrl($station['streamUrl'] ?? '');
+				$modified = true;
+			}
+			if (isset($station['homepage'])) {
+				$stationEntity->setHomepage($station['homepage'] ?? null);
+				$modified = true;
+			}
+			if (isset($station['country'])) {
+				$stationEntity->setCountry($station['country'] ?? null);
+				$modified = true;
+			}
+			if (isset($station['state'])) {
+				$stationEntity->setState($station['state'] ?? null);
+				$modified = true;
+			}
+			if (isset($station['language'])) {
+				$stationEntity->setLanguage($station['language'] ?? null);
+				$modified = true;
+			}
+			if (isset($station['bitrate'])) {
+				$stationEntity->setBitrate($station['bitrate'] ?? null);
+				$modified = true;
+			}
+			if (isset($station['codec'])) {
+				$stationEntity->setCodec($station['codec'] ?? null);
+				$modified = true;
+			}
+			if (isset($station['tags'])) {
+				$stationEntity->setTags($station['tags'] ?? null);
+				$modified = true;
+			}
+			if (isset($station['favorited'])) {
+				$stationEntity->setFavorited($station['favorited'] ?? null);
+				$modified = true;
 			}
 
-			// TODO: persist station in DB here (you may want to use RadioSourcesService)
+			if ($modified) {
+				$stationEntity->setLastUpdated(time());
+			}
 
-			return new JSONResponse(['message' => 'Station added']);
+			$this->stationMapper->insertOrUpdate($stationEntity);
+
+			return new JSONResponse(['station' => $stationEntity->jsonSerialize()]);
 		} catch (\Throwable $e) {
+			$this->logger->error('Failed to add station', ['exception' => $e]);
 			return new JSONResponse(['message' => 'Failed to add station'], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 	}
