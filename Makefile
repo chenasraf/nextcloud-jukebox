@@ -74,10 +74,13 @@ ifeq (, $(composer))
 	@echo "No composer command available, downloading a copy from the web"
 	mkdir -p $(build_tools_directory)
 	curl -sS https://getcomposer.org/installer | php
-	mv composer.phar $(build_tools_directory)
-	php $(build_tools_directory)/composer.phar install --prefer-dist
+	mv composer.phar $(composer_phar)
+endif
+ifneq ("$(wildcard vendor)","")
+	@echo "Vendor directory already exists, skipping composer install"
 else
-	composer install --prefer-dist
+	@echo "Installing composer dependencies..."
+	$(if $(composer),$(composer),php $(composer_phar)) install --prefer-dist
 endif
 
 # Installs pnpm dependencies
@@ -175,15 +178,27 @@ lint:
 	pnpm lint
 	$(composer_phar) run lint
 
+.PHONY: php-cs-fixer
+php-cs-fixer:
+	@echo "\x1b[33mFixing PHP files...\x1b[0m"
+	@FILES=$$(git diff --cached --name-only --diff-filter=ACM | grep '\.php$$'); \
+	if [ -z "$$FILES" ]; then \
+		echo "No PHP files staged."; \
+	else \
+		echo "Running CS fixer on:" $$FILES; \
+		php -l $$FILES || exit 1; \
+		php vendor-bin/cs-fixer/vendor/php-cs-fixer/shim/php-cs-fixer.phar --config=.php-cs-fixer.dist.php fix $$FILES || exit 1; \
+	fi
+
 .PHONY: format
 format:
 	pnpm format
 	PHP_CS_FIXER_IGNORE_ENV=true $(composer_phar) run cs:fix
 
 .PHONY: openapi
-openapi: composer
+openapi:
 	@echo "\x1b[33mGenerating OpenAPI documentation...\x1b[0m"
-	$(composer_phar) run openapi
+	$(if $(composer),$(composer),php $(composer_phar)) run openapi
 	@echo "\x1b[32mOpenAPI documentation generated at build/openapi/openapi.json\x1b[0m"
 
 .PHONY: sign

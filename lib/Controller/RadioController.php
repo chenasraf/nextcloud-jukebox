@@ -23,6 +23,8 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 class RadioController extends OCSController {
+	public const USER_AGENT = 'Nextcloud-Jukebox/1.0 (+https://github.com/chenasraf/nextcloud-jukebox)';
+
 	public function __construct(
 		string $appName,
 		IRequest $request,
@@ -90,7 +92,7 @@ class RadioController extends OCSController {
 			$client = $this->httpClientService->newClient();
 			$response = $client->get('http://de2.api.radio-browser.info/json/stations/byname/' . urlencode($name), [
 				'headers' => [
-					'User-Agent' => 'Nextcloud-Jukebox/1.0 (+https://github.com/chenasraf/nextcloud-jukebox)'
+					'User-Agent' => self::USER_AGENT
 				],
 			]);
 			$data = json_decode($response->getBody(), true, 512, JSON_THROW_ON_ERROR);
@@ -372,13 +374,25 @@ class RadioController extends OCSController {
 			);
 		}
 
+		// Fire-and-forget POST to increment click count on Radio Browser
+		try {
+			$client = $this->httpClientService->newClient();
+			$client->post('http://162.55.180.156/json/url/' . urlencode($uuid), [
+				'timeout' => 5,
+				'headers' => [
+					'User-Agent' => self::USER_AGENT,
+				],
+			]);
+		} catch (\Throwable $e) {
+			$this->logger->warning('Failed to notify RadioBrowser click counter', ['uuid' => $uuid, 'exception' => $e]);
+		}
+
 		try {
 			$stream = @fopen($streamUrl, 'rb');
 			if (!$stream) {
 				throw new \RuntimeException('Unable to open stream');
 			}
 
-			// Attempt to guess content type
 			$headers = @get_headers($streamUrl, true);
 			$contentType = is_array($headers) && isset($headers['Content-Type'])
 				? (is_array($headers['Content-Type']) ? $headers['Content-Type'][0] : $headers['Content-Type'])
