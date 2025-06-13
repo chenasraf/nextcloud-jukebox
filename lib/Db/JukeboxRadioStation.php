@@ -58,6 +58,24 @@ class JukeboxRadioStation extends Entity implements JsonSerializable {
 	protected int $lastUpdated = 0;
 	protected bool $favorited = false;
 
+	public function __construct() {
+		$this->addType('remoteUuid', 'string');
+		$this->addType('name', 'string');
+		$this->addType('streamUrl', 'string');
+		$this->addType('homepage', 'string');
+		$this->addType('favicon', 'string');
+		$this->addType('country', 'string');
+		$this->addType('state', 'string');
+		$this->addType('language', 'string');
+		$this->addType('bitrate', 'integer');
+		$this->addType('codec', 'string');
+		$this->addType('tags', 'string');
+		$this->addType('rawData', 'string');
+		$this->addType('userId', 'string');
+		$this->addType('lastUpdated', 'integer');
+		$this->addType('favorited', 'boolean');
+	}
+
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->id,

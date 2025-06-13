@@ -83,10 +83,7 @@ class MusicController extends OCSController {
 		$this->logger->info('Streaming track with ID: ' . $id, ['user' => $user->getUID()]);
 
 		try {
-			$media = $this->musicMapper->find((string)$id);
-			if ($media->getUserId() !== $user->getUID()) {
-				return new JSONResponse(['message' => 'Forbidden'], Http::STATUS_FORBIDDEN);
-			}
+			$media = $this->musicMapper->find($user->getUID(), (string)$id);
 
 			$file = $this->rootFolder->get($media->getPath());
 

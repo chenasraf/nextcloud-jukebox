@@ -20,6 +20,11 @@
             </div>
           </template>
         </NcButton>
+        <NcButton class="remove-button" @click.stop="remove(station)">
+          <template #icon>
+            <Delete :size="20" />
+          </template>
+        </NcButton>
       </div>
       <div v-else>
         <NcButton @click.stop="addStation(station)">
@@ -40,6 +45,7 @@ import RadioTower from '@icons/RadioTower.vue'
 import Star from '@icons/Star.vue'
 import StarOutline from '@icons/StarOutline.vue'
 import Plus from '@icons/Plus.vue'
+import Delete from '@icons/Delete.vue'
 import type { RadioStation } from '@/models/media'
 
 export default defineComponent({
@@ -54,9 +60,9 @@ export default defineComponent({
       default: '256px',
     },
   },
-  emits: ['click', 'add', 'favorite', 'unfavorite'],
+  emits: ['click', 'add', 'remove', 'favorite', 'unfavorite'],
   components: {
-    RadioTower, Star, StarOutline, NcButton, Plus,
+    RadioTower, Star, StarOutline, NcButton, Plus, Delete,
   },
   setup(_, { emit }) {
     const onClick = () => emit('click')
@@ -64,7 +70,7 @@ export default defineComponent({
     const addStation = async (station: RadioStation) => {
       try {
         const res = await axios.post('/radio/stations', { station })
-        emit('add', res.data)
+        emit('add', res.data.station)
       } catch (err) {
         console.error('Failed to add radio station:', err)
       }
@@ -79,7 +85,17 @@ export default defineComponent({
         console.error('Failed to favorite radio station:', err)
       }
     }
-    return { onClick, addStation, setFavorite }
+
+    const remove = async (station: RadioStation) => {
+      try {
+        await axios.delete(`/radio/stations/${station.remoteUuid}`)
+        emit('remove', station)
+      } catch (err) {
+        console.error('Failed to remove radio station:', err)
+      }
+    }
+
+    return { onClick, addStation, setFavorite, remove }
   },
 })
 </script>
@@ -92,6 +108,7 @@ export default defineComponent({
   flex-direction: column;
   align-items: start;
   transition: background 0.15s;
+  position: relative;
 
   &,
   & * {
@@ -126,6 +143,18 @@ export default defineComponent({
     display: flex;
     width: 100%;
     gap: 0.5rem;
+  }
+
+  .remove-button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    transition: opacity 0.3s ease-in-out;
+    opacity: 0;
+  }
+
+  &:hover .remove-button {
+    opacity: 1;
   }
 }
 </style>

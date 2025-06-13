@@ -11,7 +11,9 @@ use OCA\Jukebox\Db\JukeboxRadioStation;
 use OCA\Jukebox\Db\JukeboxRadioStationMapper;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\OCSController;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
@@ -203,6 +205,12 @@ class RadioController extends OCSController {
 
 		try {
 			$stationEntity = $this->stationMapper->findByRemoteUuid($user->getUID(), $uuid);
+
+			if (!$stationEntity) {
+				$this->logger->warning('Station not found for update', ['uuid' => $uuid, 'user' => $user->getUID()]);
+				return new JSONResponse(['message' => 'Station "' . $uuid . '" not found'], Http::STATUS_NOT_FOUND);
+			}
+
 			$modified = false;
 
 			if (isset($station['name'])) {
@@ -242,7 +250,7 @@ class RadioController extends OCSController {
 				$modified = true;
 			}
 			if (isset($station['favorited'])) {
-				$stationEntity->setFavorited($station['favorited'] ?? null);
+				$stationEntity->setFavorited((bool)$station['favorited']);
 				$modified = true;
 			}
 
@@ -250,12 +258,149 @@ class RadioController extends OCSController {
 				$stationEntity->setLastUpdated(time());
 			}
 
-			$this->stationMapper->insertOrUpdate($stationEntity);
+			$this->stationMapper->update($stationEntity);
 
 			return new JSONResponse(['station' => $stationEntity->jsonSerialize()]);
 		} catch (\Throwable $e) {
-			$this->logger->error('Failed to add station', ['exception' => $e]);
-			return new JSONResponse(['message' => 'Failed to add station'], Http::STATUS_INTERNAL_SERVER_ERROR);
+			$this->logger->error('Failed to update station', ['exception' => $e]);
+			return new JSONResponse(['message' => 'Failed to update station'], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 * Remove a saved radio station by its UUID
+	 *
+	 * @param string $uuid Remote UUID of the radio station
+	 * @return JSONResponse<Http::STATUS_OK|Http::STATUS_NOT_FOUND|Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
+	 *
+	 * 200: Station deleted
+	 * 401: Unauthenticated
+	 * 404: Station not found
+	 */
+	#[ApiRoute(verb: 'DELETE', url: '/api/radio/stations/{uuid}')]
+	public function deleteByUuid(string $uuid): JSONResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new JSONResponse(['message' => 'Unauthenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+
+		try {
+			$station = $this->stationMapper->findByRemoteUuid($user->getUID(), $uuid);
+			if (!$station) {
+				return new JSONResponse(['message' => 'Station not found'], Http::STATUS_NOT_FOUND);
+			}
+
+			$this->stationMapper->delete($station);
+
+			return new JSONResponse(['message' => 'Station deleted'], Http::STATUS_OK);
+		} catch (\Throwable $e) {
+			$this->logger->error('Failed to delete station', ['exception' => $e]);
+			return new JSONResponse(['message' => 'Failed to delete station'], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 * Redirects the user to the actual radio stream URL
+	 *
+	 * @param string $uuid Remote UUID of the radio station
+	 * @return RedirectResponse|JSONResponse
+	 *
+	 * 302: Redirect to stream URL
+	 * 401: Unauthenticated
+	 * 404: Station not found
+	 */
+	// #[NoCSRFRequired]
+	// #[ApiRoute(verb: 'GET', url: '/api/radio/{uuid}/stream')]
+	// public function streamByUuid(string $uuid): \OCP\AppFramework\Http\Response {
+	// 	$user = $this->userSession->getUser();
+	// 	if (!$user) {
+	// 		return new JSONResponse(['message' => 'Unauthenticated'], Http::STATUS_UNAUTHORIZED, []);
+	// 	}
+	//
+	// 	$station = $this->stationMapper->findByRemoteUuid($user->getUID(), $uuid);
+	// 	if (!$station) {
+	// 		return new JSONResponse(['message' => 'Station not found'], Http::STATUS_NOT_FOUND, []);
+	// 	}
+	//
+	// 	$streamUrl = $station->getStreamUrl();
+	// 	if (!$streamUrl) {
+	// 		return new JSONResponse(['message' => 'Station has no stream URL'], Http::STATUS_BAD_REQUEST, []);
+	// 	}
+	//
+	// 	return new RedirectResponse($streamUrl);
+	// }
+
+
+	/**
+	 * Stream a radio station by its UUID
+	 *
+	 * @param string $uuid UUID of the radio station
+	 * @return StreamResponse<Http::STATUS_OK, mixed>
+	 *
+	 * @throws \Exception If the stream could not be retrieved
+	 *
+	 * 200: Streaming audio content
+	 * 500: Internal error while fetching stream
+	 */
+	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/radio/{uuid}/stream')]
+	public function streamByUuid(string $uuid): \OCP\AppFramework\Http\Response {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new JSONResponse(
+				['message' => 'Unauthenticated'],
+				Http::STATUS_UNAUTHORIZED,
+				[]
+			);
+		}
+
+		$station = $this->stationMapper->findByRemoteUuid($user->getUID(), $uuid);
+		if (!$station) {
+			return new JSONResponse(
+				['message' => 'Station not found'],
+				Http::STATUS_NOT_FOUND,
+				[]
+			);
+		}
+
+		$streamUrl = $station->getStreamUrl();
+		if (!$streamUrl) {
+			return new JSONResponse(
+				['message' => 'Station has no stream URL'],
+				Http::STATUS_BAD_REQUEST,
+				[]
+			);
+		}
+
+		try {
+			$stream = @fopen($streamUrl, 'rb');
+			if (!$stream) {
+				throw new \RuntimeException('Unable to open stream');
+			}
+
+			// Attempt to guess content type
+			$headers = @get_headers($streamUrl, true);
+			$contentType = is_array($headers) && isset($headers['Content-Type'])
+				? (is_array($headers['Content-Type']) ? $headers['Content-Type'][0] : $headers['Content-Type'])
+				: 'audio/mpeg';
+
+			return new \OCP\AppFramework\Http\StreamResponse(
+				$stream,
+				Http::STATUS_OK,
+				[
+					'Content-Type' => $contentType,
+					'Cache-Control' => 'no-store, must-revalidate',
+					'Pragma' => 'no-cache',
+					'Content-Transfer-Encoding' => 'binary',
+				]
+			);
+		} catch (\Throwable $e) {
+			$this->logger->error('Failed to stream station', ['exception' => $e, 'uuid' => $uuid]);
+			return new JSONResponse(
+				['message' => 'Unable to fetch stream'],
+				Http::STATUS_INTERNAL_SERVER_ERROR,
+				[]
+			);
 		}
 	}
 }

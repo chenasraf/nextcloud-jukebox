@@ -63,6 +63,22 @@ class JukeboxMusic extends Entity implements JsonSerializable {
 	protected ?string $rawData = null;
 	protected bool $favorited = false;
 
+	public function __construct() {
+		$this->addType('title', 'string');
+		$this->addType('trackNumber', 'int');
+		$this->addType('artist', 'string');
+		$this->addType('album', 'string');
+		$this->addType('albumArtist', 'string');
+		$this->addType('duration', 'int');
+		$this->addType('albumArt', 'string');
+		$this->addType('genre', 'string');
+		$this->addType('year', 'int');
+		$this->addType('bitrate', 'int');
+		$this->addType('codec', 'string');
+		$this->addType('rawData', 'string');
+		$this->addType('favorited', 'boolean');
+	}
+
 	/**
 	 * Returns the base64-encoded version of the album art blob
 	 *

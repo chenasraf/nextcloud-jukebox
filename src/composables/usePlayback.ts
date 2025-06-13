@@ -14,7 +14,7 @@ const currentMedia = computed(() => {
   return currentIndex.value >= 0 ? queue.value[currentIndex.value] ?? null : null
 })
 
-function play(media: Media) {
+function playMusic(media: Media) {
   const index = queue.value.findIndex(item => item.id === media.id)
 
   if (index !== -1) {
@@ -24,7 +24,7 @@ function play(media: Media) {
     currentIndex.value = queue.value.length - 1
   }
 
-  const newSrc = axios.defaults.baseURL + `/tracks/${media.id}/stream`
+  const newSrc = axios.defaults.baseURL + `/music/tracks/${media.id}/stream`
 
   if (audio.src !== newSrc) {
     audio.pause()
@@ -43,10 +43,29 @@ function play(media: Media) {
     })
 }
 
+function playRadioStation(uuid: string) {
+  clearQueue()
+  const src = axios.defaults.baseURL + `/radio/${uuid}/stream`
+  if (audio.src !== src) {
+    audio.pause()
+    audio.src = src
+    audio.load()
+  }
+  audio
+    .play()
+    .then(() => {
+      isPlaying.value = true
+    })
+    .catch(err => {
+      console.error('Playback failed:', err)
+      isPlaying.value = false
+    })
+}
+
 function playIndex(index: number) {
   if (queue.value[index]) {
     currentIndex.value = index
-    play(queue.value[index])
+    playMusic(queue.value[index])
   }
 }
 
@@ -121,7 +140,7 @@ function overwriteQueue(newQueue: Media[], startIndex = 0) {
   currentIndex.value = startIndex
 
   if (queue.value[startIndex]) {
-    play(queue.value[startIndex])
+    playMusic(queue.value[startIndex])
   } else {
     console.warn('No valid track at startIndex', startIndex)
   }
@@ -165,7 +184,8 @@ audio.addEventListener('loadedmetadata', () => {
 
 function usePlayback() {
   return {
-    play,
+    playMusic,
+    playRadioStation,
     pause,
     togglePlay,
     next,

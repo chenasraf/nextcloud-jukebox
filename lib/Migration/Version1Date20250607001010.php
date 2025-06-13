@@ -174,7 +174,7 @@ class Version1Date20250607001010 extends SimpleMigrationStep {
 		]);
 
 		$radio->setPrimaryKey(['id']);
-		$radio->addUniqueIndex(['remote_uuid'], 'radio_remote_uuid_idx');
+		$radio->addUniqueIndex(['remote_uuid', 'user_id'], 'radio_remote_uuid_user_id_idx');
 		$radio->addIndex(['user_id'], 'radio_user_idx');
 
 		return $schema;

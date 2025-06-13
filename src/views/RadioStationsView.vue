@@ -4,79 +4,87 @@
       Radio Stations
     </template>
 
-    <div class="search-bar">
-      <NcAppNavigationSearch v-model="searchTerm" placeholder="Search stations..." />
-    </div>
+    <SearchRadioStationModal v-if="isSearchModalOpen" @add-station="addStation" @close="isSearchModalOpen = false"
+      :stations="stations" />
 
-    <div v-if="searchTerm.trim()">
-      <h4>Search Results</h4>
+    <div v-if="favorites.length">
+      <h4>Favorites</h4>
       <div class="radio-station-list">
-        <RadioStationCardItem v-for="station in searchResults" :key="station.remoteUuid" :station="station"
-          @click="goToStation(station.remoteUuid)" @add="addStation(station)" />
+        <RadioStationCardItem v-for="station in favorites" :key="station.remoteUuid" :station="station"
+          @click="playStation(station.remoteUuid)" @unfavorite="setFavorite(station, false)"
+          @remove="removeStation(station)" />
       </div>
     </div>
 
-    <div v-else>
-      <div v-if="favorites.length">
-        <h4>Favorites</h4>
-        <div class="radio-station-list">
-          <RadioStationCardItem v-for="station in favorites" :key="station.remoteUuid" :station="station"
-            @click="goToStation(station.remoteUuid)" @unfavorite="setFavorite(station, false)" />
-        </div>
-      </div>
+    <div v-if="stations.length">
+      <h4>
+        My Stations
 
-      <div v-if="stations.length">
-        <h4>My Stations</h4>
-        <div class="radio-station-list">
-          <RadioStationCardItem v-for="station in stations" :key="station.remoteUuid" :station="station"
-            @click="goToStation(station.remoteUuid)" @favorite="setFavorite(station, true)"
-            @unfavorite="setFavorite(station, false)" />
-        </div>
+        <NcButton @click="isSearchModalOpen = true">
+          <template #icon>
+            <Plus />
+          </template>
+          Add
+        </NcButton>
+      </h4>
+      <div class="radio-station-list">
+        <RadioStationCardItem v-for="station in stations" :key="station.remoteUuid" :station="station"
+          @click="playStation(station.remoteUuid)" @favorite="setFavorite(station, true)"
+          @unfavorite="setFavorite(station, false)" @remove="removeStation(station)" />
       </div>
+    </div>
 
-      <div v-if="!favorites.length && !stations.length" class="empty-state">
-        <p>No radio stations found. Add some to get started!</p>
-      </div>
+    <div v-if="!favorites.length && !stations.length" class="empty-state">
+      <p>No radio stations found. Add some to get started!</p>
+      <NcButton @click="isSearchModalOpen = true">
+        <template #icon>
+          <Plus />
+        </template>
+        Add
+      </NcButton>
     </div>
   </Page>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, computed, ref, watch } from 'vue'
+import { defineComponent, onMounted, ref } from 'vue'
 import { axios } from '@/axios'
-import { useRouter } from 'vue-router'
 import Page from '@/components/Page.vue'
 import RadioStationCardItem from '@/components/media/RadioStationCardItem.vue'
-import NcAppNavigationSearch from '@nextcloud/vue/components/NcAppNavigationSearch'
+import NcButton from '@nextcloud/vue/components/NcButton'
+import SearchRadioStationModal from '@/components/media/SearchRadioStationModal.vue'
+import Plus from '@icons/Plus.vue'
 import type { RadioStation } from '@/models/media'
-import { useGoToRadioStation } from '@/utils/routing'
+// import { useGoToRadioStation } from '@/utils/routing'
+import playback from '@/composables/usePlayback'
 
 export default defineComponent({
   name: 'RadioStationsView',
   components: {
     Page,
+    NcButton,
     RadioStationCardItem,
-    NcAppNavigationSearch,
+    SearchRadioStationModal,
+    Plus,
   },
   setup() {
     const stations = ref<RadioStation[]>([])
     const favorites = ref<RadioStation[]>([])
-    const searchResults = ref<RadioStation[]>([])
-    const searchTerm = ref('')
+    const isSearchModalOpen = ref(false)
     const isLoading = ref(true)
 
-    const router = useRouter()
+    // const playStation = useGoToRadioStation()
 
-    const goToStation = useGoToRadioStation()
+    const playStation = (remoteUuid: string) => {
+      playback.playRadioStation(remoteUuid)
+    }
 
     const fetchFavorites = async () => {
       try {
         const res = await axios.get('/radio/favorites')
         favorites.value = res.data.stations
       } catch (err) {
-        console.error('Failed to load radio stations:', err)
-      } finally {
-        isLoading.value = false
+        console.error('Failed to load favorites:', err)
       }
     }
 
@@ -84,60 +92,41 @@ export default defineComponent({
       try {
         const res = await axios.get('/radio/stations')
         stations.value = res.data.stations
-      } catch (err) {
-        console.error('Failed to load radio stations:', err)
-      } finally {
         isLoading.value = false
+      } catch (err) {
+        console.error('Failed to load stations:', err)
       }
     }
 
     const addStation = async (station: RadioStation) => {
-      try {
-        stations.value.unshift(station)
-        const index = searchResults.value.findIndex(s => s.remoteUuid === station.remoteUuid)
-        if (index !== -1) {
-          searchResults.value[index] = station
-        }
-      } catch (err) {
-        console.error('Failed to add radio station:', err)
-      }
+      stations.value.unshift(station)
     }
 
     const setFavorite = async (station: RadioStation, favorited: boolean) => {
+      station.favorited = favorited
+      if (favorited) {
+        favorites.value.unshift(station)
+      } else {
+        const index = favorites.value.findIndex(s => s.remoteUuid === station.remoteUuid)
+        if (index !== -1) {
+          favorites.value.splice(index, 1)
+        }
+      }
+    }
+
+    const removeStation = async (station: RadioStation) => {
       try {
-        station.favorited = favorited
-        if (favorited) {
-          favorites.value.unshift(station)
-        } else {
-          const index = favorites.value.findIndex(s => s.remoteUuid === station.remoteUuid)
-          if (index !== -1) {
-            favorites.value.splice(index, 1)
-          }
+        const index = stations.value.findIndex(s => s.remoteUuid === station.remoteUuid)
+        if (index !== -1) {
+          stations.value.splice(index, 1)
+        }
+        if (station.favorited) {
+          setFavorite(station, false)
         }
       } catch (err) {
-        console.error('Failed to favorite radio station:', err)
+        console.error('Failed to remove station:', err)
       }
     }
-
-    const handleSearch = async () => {
-      if (!searchTerm.value.trim()) {
-        searchResults.value = []
-        return
-      }
-
-      try {
-        const res = await axios.get(`/radio/search/${encodeURIComponent(searchTerm.value)}`)
-        searchResults.value = res.data.stations
-      } catch (err) {
-        console.error('Failed to search radio stations:', err)
-      }
-    }
-
-    let debounceTimeout: number | undefined
-    watch(searchTerm, () => {
-      clearTimeout(debounceTimeout)
-      debounceTimeout = window.setTimeout(handleSearch, 400)
-    })
 
     onMounted(() => {
       fetchStations()
@@ -145,14 +134,13 @@ export default defineComponent({
     })
 
     return {
+      isLoading,
       stations,
       favorites,
-      searchTerm,
-      searchResults,
-      isLoading,
-      handleSearch,
-      goToStation,
+      isSearchModalOpen,
+      playStation,
       addStation,
+      removeStation,
       setFavorite,
     }
   },
@@ -160,18 +148,20 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.search-bar {
-  margin-bottom: 1rem;
+.radio-station-list {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+h4 {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
 }
 
 .empty-state {
   text-align: center;
-  color: var(--color-text-maxcontrast);
   font-style: italic;
-}
-
-.radio-station-list {
-  display: flex;
-  flex-wrap: wrap;
+  color: var(--color-text-maxcontrast);
 }
 </style>
