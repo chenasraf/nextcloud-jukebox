@@ -30,13 +30,13 @@
 import { defineComponent, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { axios } from '@/axios'
-import type { Album, Media } from '@/models/media'
+import type { Album, Track } from '@/models/media'
 import { useGoToArtist } from '@/utils/routing'
 
 import Page from '@/components/Page.vue'
 import MediaListItem from '@/components/media/MediaListItem.vue'
 import Music from '@icons/Music.vue'
-import playback from '@/composables/usePlayback'
+import playback, { trackToPlayable } from '@/composables/usePlayback'
 import NcButton from '@nextcloud/vue/components/NcButton'
 
 export default defineComponent({
@@ -61,11 +61,11 @@ export default defineComponent({
       }
     })
 
-    const handlePlay = (track: Media) => {
+    const handlePlay = (track: Track) => {
       if (album.value) {
         const index = album.value.tracks.findIndex(t => t.id === track.id)
         if (index !== -1) {
-          overwriteQueue([...album.value.tracks], index)
+          overwriteQueue(album.value.tracks.map(trackToPlayable), index)
         }
       }
     }

@@ -7,9 +7,10 @@ declare(strict_types=1);
 
 namespace OCA\Jukebox\Controller;
 
-use OCA\Jukebox\Db\JukeboxMusicMapper;
+use OCA\Jukebox\Db\TrackMapper;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
@@ -29,7 +30,7 @@ class MusicController extends OCSController {
 		IRequest $request,
 		private IAppConfig $config,
 		private IL10N $l,
-		private JukeboxMusicMapper $musicMapper,
+		private TrackMapper $musicMapper,
 		private IUserSession $userSession,
 		private IRootFolder $rootFolder,
 		private LoggerInterface $logger,
@@ -44,6 +45,7 @@ class MusicController extends OCSController {
 	 *
 	 * 200: List of media tracks for current user
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/music/tracks')]
 	public function listTracks(): JSONResponse {
 		$user = $this->userSession->getUser();
@@ -70,8 +72,9 @@ class MusicController extends OCSController {
 	 * 403: Track does not belong to current user
 	 * 404: Track file or record not found
 	 */
-	#[ApiRoute(verb: 'GET', url: '/api/music/tracks/{id}/stream')]
+	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	#[ApiRoute(verb: 'GET', url: '/api/music/tracks/{id}/stream')]
 	public function streamTrack(int $id): FileDisplayResponse|JSONResponse {
 		$this->logger->info('Received request to stream track with ID: ' . $id);
 
@@ -112,6 +115,7 @@ class MusicController extends OCSController {
 	 *
 	 * 200: Grouped albums and their tracks
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/music/albums')]
 	public function listAlbums(): JSONResponse {
 		$user = $this->userSession->getUser();
@@ -162,6 +166,7 @@ class MusicController extends OCSController {
 	 *
 	 * 200: Album and its tracks
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/music/albums/{artist}/{album}')]
 	public function getAlbumById(string $artist, string $album): JSONResponse {
 		try {
@@ -217,6 +222,7 @@ class MusicController extends OCSController {
 	 *
 	 * 200: List of unique artists
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/music/artists')]
 	public function listArtists(): JSONResponse {
 		try {
@@ -248,6 +254,7 @@ class MusicController extends OCSController {
 	 *
 	 * 200: Artist details, their albums and tracks
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/music/artists/{id}')]
 	public function getArtistById(string $id): JSONResponse {
 		$this->logger->info('Received request to get artist by ID: ' . $id);

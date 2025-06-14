@@ -7,6 +7,7 @@ namespace OCA\Jukebox\Controller;
 use OCA\Jukebox\AppInfo\Application;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\OCSController;
@@ -40,6 +41,7 @@ class SettingsController extends OCSController {
 	 *
 	 * 200: Settings saved
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'PUT', url: '/api/settings')]
 	public function saveSettings(mixed $data): DataResponse {
 		$user = $this->userSession->getUser();
@@ -63,6 +65,7 @@ class SettingsController extends OCSController {
 	 *
 	 * 200: Current settings
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/settings')]
 	public function getSettings(): DataResponse {
 		$user = $this->userSession->getUser();

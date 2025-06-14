@@ -31,7 +31,8 @@
   "require": {
     "php": "^8.1",
     "bamarni/composer-bin-plugin": "^1.8",
-    "james-heinrich/getid3": "^1.9"
+    "james-heinrich/getid3": "^1.9",
+    "simplepie/simplepie": "^1.8"
   },
   "require-dev": {
     "nextcloud/ocp": "dev-stable29",

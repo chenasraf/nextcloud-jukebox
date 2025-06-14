@@ -14,21 +14,21 @@ use OCP\IDBConnection;
 use Psr\Log\LoggerInterface;
 
 /**
- * @template-extends QBMapper<JukeboxMusic>
+ * @template-extends QBMapper<Track>
  */
-class JukeboxMusicMapper extends QBMapper {
+class TrackMapper extends QBMapper {
 	public function __construct(
 		IDBConnection $db,
 		private LoggerInterface $logger,
 	) {
-		parent::__construct($db, Application::tableName('music'), JukeboxMusic::class);
+		parent::__construct($db, Application::tableName('music'), Track::class);
 	}
 
 	/**
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException
 	 * @throws DoesNotExistException
 	 */
-	public function find(string $userId, string $id): JukeboxMusic {
+	public function find(string $userId, string $id): Track {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
 			->from($this->getTableName())
@@ -45,7 +45,7 @@ class JukeboxMusicMapper extends QBMapper {
 	 * Find all music entries for a specific user
 	 *
 	 * @param string $userId
-	 * @return array<JukeboxMusic>
+	 * @return array<Track>
 	 */
 	public function findByUserId(string $userId): array {
 		$qb = $this->db->getQueryBuilder();
@@ -59,7 +59,7 @@ class JukeboxMusicMapper extends QBMapper {
 	}
 
 	/**
-	 * @return array<JukeboxMusic>
+	 * @return array<Track>
 	 */
 	public function findAll(): array {
 		$qb = $this->db->getQueryBuilder();
@@ -70,7 +70,7 @@ class JukeboxMusicMapper extends QBMapper {
 	/**
 	 * @param string $userId
 	 * @param string $query
-	 * @return array<JukeboxMusic>
+	 * @return array<Track>
 	 */
 	public function searchMusic(string $userId, string $query): array {
 		$qb = $this->db->getQueryBuilder();
@@ -98,7 +98,7 @@ class JukeboxMusicMapper extends QBMapper {
 	 * @param string $userId
 	 * @param string $artist
 	 * @param string $album
-	 * @return array<JukeboxMusic>
+	 * @return array<Track>
 	 */
 	public function findByAlbum(string $userId, string $artist, string $album): array {
 		$qb = $this->db->getQueryBuilder();
@@ -117,7 +117,7 @@ class JukeboxMusicMapper extends QBMapper {
 	/**
 	 * @param string $userId
 	 * @param string $artist
-	 * @return array<JukeboxMusic>
+	 * @return array<Track>
 	 */
 	public function findByArtist(string $userId, string $artist): array {
 		$qb = $this->db->getQueryBuilder();
@@ -140,9 +140,9 @@ class JukeboxMusicMapper extends QBMapper {
 	/**
 	 * @param string $userId
 	 * @param string $path
-	 * @return JukeboxMusic|null
+	 * @return Track|null
 	 */
-	public function findByUserIdAndPath(string $userId, string $path): ?JukeboxMusic {
+	public function findByUserIdAndPath(string $userId, string $path): ?Track {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
 			->from($this->getTableName())

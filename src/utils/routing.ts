@@ -16,6 +16,10 @@ export function getRadioStationPath(uuid: string): string {
   return `/radio/${uuid}`;
 }
 
+export function getPodcastPath(id: number): string {
+  return `/podcasts/${id}`;
+}
+
 export function useGoToRoute() {
   const router = useRouter()
 
@@ -37,4 +41,9 @@ export function useGoToArtist() {
 export function useGoToRadioStation() {
   const goToRoute = useGoToRoute()
   return (uuid: string) => goToRoute(getRadioStationPath(uuid))
+}
+
+export function useGoToPodcast() {
+  const goToRoute = useGoToRoute()
+  return (id: number) => goToRoute(getPodcastPath(id))
 }

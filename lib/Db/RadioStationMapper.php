@@ -13,20 +13,20 @@ use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
 /**
- * @template-extends QBMapper<JukeboxRadioStation>
+ * @template-extends QBMapper<RadioStation>
  */
-class JukeboxRadioStationMapper extends QBMapper {
+class RadioStationMapper extends QBMapper {
 	public function __construct(
 		IDBConnection $db,
 	) {
-		parent::__construct($db, Application::tableName('radio_stations'), JukeboxRadioStation::class);
+		parent::__construct($db, Application::tableName('radio_stations'), RadioStation::class);
 	}
 
 	/**
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException
 	 * @throws DoesNotExistException
 	 */
-	public function find(int $id): JukeboxRadioStation {
+	public function find(int $id): RadioStation {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
 			->from($this->getTableName())
@@ -35,7 +35,7 @@ class JukeboxRadioStationMapper extends QBMapper {
 	}
 
 	/**
-	 * @return array<JukeboxRadioStation>
+	 * @return array<RadioStation>
 	 */
 	public function findAll(): array {
 		$qb = $this->db->getQueryBuilder();
@@ -45,9 +45,9 @@ class JukeboxRadioStationMapper extends QBMapper {
 
 	/**
 	 * @param string $remoteUuid
-	 * @return JukeboxRadioStation|null
+	 * @return RadioStation|null
 	 */
-	public function findByRemoteUuid(string $userId, string $remoteUuid): ?JukeboxRadioStation {
+	public function findByRemoteUuid(string $userId, string $remoteUuid): ?RadioStation {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
 			->from($this->getTableName())
@@ -64,7 +64,7 @@ class JukeboxRadioStationMapper extends QBMapper {
 
 	/**
 	 * @param string $userId
-	 * @return array<JukeboxRadioStation>
+	 * @return array<RadioStation>
 	 */
 	public function findByUserId(string $userId): array {
 		$qb = $this->db->getQueryBuilder();
@@ -77,7 +77,7 @@ class JukeboxRadioStationMapper extends QBMapper {
 
 	/**
 	 * @param string $userId
-	 * @return array<JukeboxRadioStation>
+	 * @return array<RadioStation>
 	 */
 	public function findFavoritesByUserId(string $userId): array {
 		$qb = $this->db->getQueryBuilder();
@@ -109,7 +109,7 @@ class JukeboxRadioStationMapper extends QBMapper {
 	 * @param string $userId
 	 * @param int $offset
 	 * @param int $limit
-	 * @return array<JukeboxRadioStation>
+	 * @return array<RadioStation>
 	 */
 	public function findPaginatedByUserId(string $userId, int $offset, int $limit): array {
 		$qb = $this->db->getQueryBuilder();

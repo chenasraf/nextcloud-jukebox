@@ -12,11 +12,11 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref } from 'vue'
 import { axios } from '@/axios'
-import type { Media, Album } from '@/models/media'
+import type { Track, Album } from '@/models/media'
 
 import AlbumListItem from '@/components/media/AlbumListItem.vue'
 import Page from '@/components/Page.vue'
-import playback from '@/composables/usePlayback'
+import playback, { trackToPlayable } from '@/composables/usePlayback'
 
 
 export default defineComponent({
@@ -38,11 +38,11 @@ export default defineComponent({
       }
     })
 
-    const handlePlay = (track: Media) => {
+    const handlePlay = (track: Track) => {
       for (const album of albums.value) {
         const index = album.tracks.findIndex(t => t.id === track.id)
         if (index !== -1) {
-          overwriteQueue([...album.tracks], index)
+          overwriteQueue(album.tracks.map(trackToPlayable), index)
           return
         }
       }

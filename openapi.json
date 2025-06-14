@@ -51,7 +51,6 @@
             "get": {
                 "operationId": "music-list-tracks",
                 "summary": "List all tracks for the current user",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "music"
                 ],
@@ -107,7 +106,6 @@
             "get": {
                 "operationId": "music-stream-track",
                 "summary": "Stream a track file for playback",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "music"
                 ],
@@ -214,7 +212,6 @@
             "get": {
                 "operationId": "music-list-albums",
                 "summary": "Fetch albums with grouped tracks for current user",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "music"
                 ],
@@ -300,7 +297,6 @@
             "get": {
                 "operationId": "music-get-album-by-id",
                 "summary": "Fetch a single album by its album & artist",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "music"
                 ],
@@ -393,7 +389,6 @@
             "get": {
                 "operationId": "music-list-artists",
                 "summary": "Fetch a list of unique artists for the current user",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "music"
                 ],
@@ -464,7 +459,6 @@
             "get": {
                 "operationId": "music-get-artist-by-id",
                 "summary": "Fetch a single artist by their ID",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "music"
                 ],
@@ -539,11 +533,912 @@
                 }
             }
         },
+        "/ocs/v2.php/apps/jukebox/api/podcasts/subscriptions": {
+            "get": {
+                "operationId": "podcast-get-subscriptions",
+                "summary": "Get all podcast subscriptions for the current user",
+                "tags": [
+                    "podcast"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscriptions listed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": [
+                                            "id",
+                                            "url",
+                                            "subscribed",
+                                            "updated"
+                                        ],
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "format": "int64"
+                                            },
+                                            "url": {
+                                                "type": "string"
+                                            },
+                                            "subscribed": {
+                                                "type": "boolean"
+                                            },
+                                            "updated": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "operationId": "podcast-subscribe",
+                "summary": "Subscribe to a podcast by URL",
+                "tags": [
+                    "podcast"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "url"
+                                ],
+                                "properties": {
+                                    "url": {
+                                        "type": "string",
+                                        "description": "The podcast feed URL"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Subscription created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "subscription"
+                                    ],
+                                    "properties": {
+                                        "subscription": {
+                                            "type": "object",
+                                            "required": [
+                                                "id",
+                                                "url",
+                                                "subscribed",
+                                                "updated",
+                                                "title",
+                                                "author",
+                                                "description",
+                                                "image"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "url": {
+                                                    "type": "string"
+                                                },
+                                                "subscribed": {
+                                                    "type": "boolean"
+                                                },
+                                                "updated": {
+                                                    "type": "string"
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                },
+                                                "author": {
+                                                    "type": "string"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "image": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "subscription"
+                                    ],
+                                    "properties": {
+                                        "subscription": {
+                                            "type": "object",
+                                            "required": [
+                                                "id",
+                                                "url",
+                                                "subscribed",
+                                                "updated",
+                                                "title",
+                                                "author",
+                                                "description",
+                                                "image"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "url": {
+                                                    "type": "string"
+                                                },
+                                                "subscribed": {
+                                                    "type": "boolean"
+                                                },
+                                                "updated": {
+                                                    "type": "string"
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                },
+                                                "author": {
+                                                    "type": "string"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "image": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "Subscription updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "subscription"
+                                    ],
+                                    "properties": {
+                                        "subscription": {
+                                            "type": "object",
+                                            "required": [
+                                                "id",
+                                                "url",
+                                                "subscribed",
+                                                "updated",
+                                                "title",
+                                                "author",
+                                                "description",
+                                                "image"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "format": "int64"
+                                                },
+                                                "url": {
+                                                    "type": "string"
+                                                },
+                                                "subscribed": {
+                                                    "type": "boolean"
+                                                },
+                                                "updated": {
+                                                    "type": "string"
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                },
+                                                "author": {
+                                                    "type": "string"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "image": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/jukebox/api/podcasts/track": {
+            "post": {
+                "operationId": "podcast-track-action",
+                "summary": "Track a podcast playback action",
+                "tags": [
+                    "podcast"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "id",
+                                    "guid",
+                                    "action",
+                                    "timestamp"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "description": "Episode ID"
+                                    },
+                                    "guid": {
+                                        "type": "string",
+                                        "description": "Episode GUID"
+                                    },
+                                    "action": {
+                                        "type": "string",
+                                        "description": "e.g. \"play\", \"pause\", \"complete\""
+                                    },
+                                    "timestamp": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "description": "UNIX timestamp"
+                                    },
+                                    "position": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Position in seconds"
+                                    },
+                                    "total": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Duration in seconds"
+                                    },
+                                    "device": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Device name or ID"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Action logged",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/jukebox/api/podcasts/next": {
+            "get": {
+                "operationId": "podcast-get-next-episodes",
+                "summary": "Get the next unfinished episode per podcast",
+                "tags": [
+                    "podcast"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Next episodes listed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "episodes"
+                                    ],
+                                    "properties": {
+                                        "episodes": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "required": [
+                                                    "id",
+                                                    "title",
+                                                    "guid",
+                                                    "pub_date",
+                                                    "duration",
+                                                    "media_url",
+                                                    "description",
+                                                    "subscription_data_id"
+                                                ],
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "format": "int64"
+                                                    },
+                                                    "title": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "guid": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "pub_date": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "duration": {
+                                                        "type": "integer",
+                                                        "format": "int64",
+                                                        "nullable": true
+                                                    },
+                                                    "media_url": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "subscription_data_id": {
+                                                        "type": "integer",
+                                                        "format": "int64"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/jukebox/api/podcasts/subscriptions/{id}": {
+            "get": {
+                "operationId": "podcast-get-subscription",
+                "summary": "Get a single podcast subscription",
+                "tags": [
+                    "podcast"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "the subscription ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscription found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "subscription"
+                                    ],
+                                    "properties": {
+                                        "subscription": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Subscription not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "subscription"
+                                    ],
+                                    "properties": {
+                                        "subscription": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/jukebox/api/podcasts/subscriptions/{id}/episodes": {
+            "get": {
+                "operationId": "podcast-get-episodes-for-subscription",
+                "summary": "Get all episodes for a podcast subscription",
+                "tags": [
+                    "podcast"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "the subscription ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Episodes listed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "episodes"
+                                    ],
+                                    "properties": {
+                                        "episodes": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Subscription not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "episodes"
+                                    ],
+                                    "properties": {
+                                        "episodes": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/jukebox/api/podcasts/episodes/{id}/stream": {
+            "get": {
+                "operationId": "podcast-stream-episode",
+                "summary": "Stream a podcast episode",
+                "tags": [
+                    "podcast"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Episode ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "range",
+                        "in": "query",
+                        "description": "Optional HTTP Range header for seeking support",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true,
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "range",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Full content stream returned",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "206": {
+                        "description": "Partial content stream returned",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "User is not authenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Episode not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or missing media URL",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error occurred while streaming",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ocs/v2.php/apps/jukebox/api/podcasts/episodes/{id}/position": {
+            "get": {
+                "operationId": "podcast-get-episode-position",
+                "summary": "Get the last known playback position for a podcast episode",
+                "tags": [
+                    "podcast"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Episode ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "OCS-APIRequest",
+                        "in": "header",
+                        "description": "Required to be true for the API request to pass",
+                        "required": true,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Playback position returned",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "position"
+                                    ],
+                                    "properties": {
+                                        "position": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "User not authenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Episode not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/ocs/v2.php/apps/jukebox/api/radio/stations": {
             "get": {
                 "operationId": "radio-index",
                 "summary": "List all saved radio stations for current user, paginated",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "radio"
                 ],
@@ -617,7 +1512,6 @@
             "post": {
                 "operationId": "radio-add-by-uuid",
                 "summary": "Add a radio station to the database",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "radio"
                 ],
@@ -692,7 +1586,6 @@
             "get": {
                 "operationId": "radio-favorites",
                 "summary": "List all favorited radio stations for current user, paginated",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "radio"
                 ],
@@ -768,7 +1661,6 @@
             "get": {
                 "operationId": "radio-search",
                 "summary": "Search radio stations from Radio Browser by name",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "radio"
                 ],
@@ -833,7 +1725,6 @@
             "get": {
                 "operationId": "radio-get-by-uuid",
                 "summary": "List all favorited radio stations for current user, paginated",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "radio"
                 ],
@@ -895,7 +1786,6 @@
             "put": {
                 "operationId": "radio-update-by-uuid",
                 "summary": "Update an existing radio station by UUID",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "radio"
                 ],
@@ -977,7 +1867,6 @@
             "delete": {
                 "operationId": "radio-delete-by-uuid",
                 "summary": "Remove a saved radio station by its UUID",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "radio"
                 ],
@@ -1072,7 +1961,6 @@
             "get": {
                 "operationId": "radio-stream-by-uuid",
                 "summary": "Stream a radio station by its UUID",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "radio"
                 ],
@@ -1134,7 +2022,6 @@
             "put": {
                 "operationId": "settings-save-settings",
                 "summary": "Save user-specific settings",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "settings"
                 ],
@@ -1225,7 +2112,6 @@
             "get": {
                 "operationId": "settings-get-settings",
                 "summary": "Fetch all user-specific settings",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "settings"
                 ],

@@ -35,8 +35,8 @@ import NcPopover from '@nextcloud/vue/components/NcPopover'
 import MediaListItem from '@/components/media/MediaListItem.vue'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import Delete from '@icons/Delete.vue'
-import { type Media } from '@/models/media'
-import playback from '@/composables/usePlayback'
+import { type Track } from '@/models/media'
+import playback, { trackToPlayable } from '@/composables/usePlayback'
 
 export default defineComponent({
   name: 'QueuePopover',
@@ -44,7 +44,7 @@ export default defineComponent({
   props: {
     shown: Boolean,
     queue: {
-      type: Array as PropType<Media[]>,
+      type: Array as PropType<Track[]>,
       required: true,
     },
   },
@@ -55,7 +55,7 @@ export default defineComponent({
     const onClose = () => {
       emit('update:shown', false)
     }
-    const onPlay = (media: Media) => playback.playFromQueue(media)
+    const onPlay = (media: Track) => playback.playFromQueue(trackToPlayable(media))
 
     const handleClickOutside = (event: MouseEvent) => {
       if (!popoverRef.value || !triggerRef.value) return
@@ -72,8 +72,8 @@ export default defineComponent({
       document.removeEventListener('mousedown', handleClickOutside)
     })
 
-    const onRemove = (media: Media) => {
-      playback.removeFromQueue(media)
+    const onRemove = (media: Track) => {
+      playback.removeFromQueue(trackToPlayable(media))
       emit('update:shown', true)
     }
 

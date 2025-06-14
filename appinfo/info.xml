@@ -40,13 +40,14 @@ It supports music files, podcasts (with gPodder sync), audiobooks, YouTube video
 		<nextcloud min-version="29" max-version="31"/>
 	</dependencies>
 
-	<!-- <background-jobs>
-		<job>OCA\Jukebox\Cron\FetchCurrenciesJob</job>
-	</background-jobs> -->
+	<background-jobs>
+		<job>OCA\Jukebox\Cron\FetchPodcastEpisodesTask</job>
+	</background-jobs>
 
 	<commands>
 		<command>OCA\Jukebox\Command\ScanMusic</command>
 		<command>OCA\Jukebox\Command\ImportRadioStations</command>
+		<command>OCA\Jukebox\Command\PodcastFetchEpisodes</command>
 	</commands>
 
 	<settings>

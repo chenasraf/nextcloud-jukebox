@@ -7,13 +7,13 @@ declare(strict_types=1);
 
 namespace OCA\Jukebox\Controller;
 
-use OCA\Jukebox\Db\JukeboxRadioStation;
-use OCA\Jukebox\Db\JukeboxRadioStationMapper;
+use OCA\Jukebox\Db\RadioStation;
+use OCA\Jukebox\Db\RadioStationMapper;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\OCSController;
 use OCP\Http\Client\IClientService;
 use OCP\IAppConfig;
@@ -30,7 +30,7 @@ class RadioController extends OCSController {
 		IRequest $request,
 		private IAppConfig $config,
 		private IL10N $l,
-		private JukeboxRadioStationMapper $stationMapper,
+		private RadioStationMapper $stationMapper,
 		private IUserSession $userSession,
 		private IClientService $httpClientService,
 		private LoggerInterface $logger,
@@ -47,6 +47,7 @@ class RadioController extends OCSController {
 	 *
 	 * 200: List of radio stations returned
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/radio/stations')]
 	public function index(int $offset = 0, int $limit = 50): JSONResponse {
 		$user = $this->userSession->getUser();
@@ -67,6 +68,7 @@ class RadioController extends OCSController {
 	 *
 	 * 200: List of radio stations returned
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/radio/favorites')]
 	public function favorites(int $offset = 0, int $limit = 50): JSONResponse {
 		$user = $this->userSession->getUser();
@@ -86,6 +88,7 @@ class RadioController extends OCSController {
 	 *
 	 * 200: Matching radio stations returned
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/radio/search/{name}')]
 	public function search(string $name): JSONResponse {
 		try {
@@ -102,7 +105,7 @@ class RadioController extends OCSController {
 				if (!isset($item['stationuuid'])) {
 					continue;
 				}
-				$station = new JukeboxRadioStation();
+				$station = new RadioStation();
 				$station->setRemoteUuid($item['stationuuid']);
 				$station->setName($item['name'] ?? '');
 				$station->setStreamUrl($item['url_resolved'] ?? '');
@@ -134,6 +137,7 @@ class RadioController extends OCSController {
 	 *
 	 * 200: Radio station returned
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/radio/{uuid}')]
 	public function getByUuid(string $uuid): JSONResponse {
 		$user = $this->userSession->getUser();
@@ -153,6 +157,7 @@ class RadioController extends OCSController {
 	 *
 	 * 200: Station was added successfully
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'POST', url: '/api/radio/stations')]
 	public function addByUuid(array $station): JSONResponse {
 		$user = $this->userSession->getUser();
@@ -161,7 +166,7 @@ class RadioController extends OCSController {
 		}
 
 		try {
-			$stationEntity = new JukeboxRadioStation();
+			$stationEntity = new RadioStation();
 			$stationEntity->setUserId($user->getUID());
 			$stationEntity->setRemoteUuid($station['remoteUuid']);
 			$stationEntity->setName($station['name'] ?? '');
@@ -198,6 +203,7 @@ class RadioController extends OCSController {
 	 *
 	 * 200: Station was added successfully
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'PUT', url: '/api/radio/stations/{uuid}')]
 	public function updateByUuid(string $uuid, array $station): JSONResponse {
 		$user = $this->userSession->getUser();
@@ -279,6 +285,7 @@ class RadioController extends OCSController {
 	 * 401: Unauthenticated
 	 * 404: Station not found
 	 */
+	#[NoAdminRequired]
 	#[ApiRoute(verb: 'DELETE', url: '/api/radio/stations/{uuid}')]
 	public function deleteByUuid(string $uuid): JSONResponse {
 		$user = $this->userSession->getUser();
@@ -302,38 +309,6 @@ class RadioController extends OCSController {
 	}
 
 	/**
-	 * Redirects the user to the actual radio stream URL
-	 *
-	 * @param string $uuid Remote UUID of the radio station
-	 * @return RedirectResponse|JSONResponse
-	 *
-	 * 302: Redirect to stream URL
-	 * 401: Unauthenticated
-	 * 404: Station not found
-	 */
-	// #[NoCSRFRequired]
-	// #[ApiRoute(verb: 'GET', url: '/api/radio/{uuid}/stream')]
-	// public function streamByUuid(string $uuid): \OCP\AppFramework\Http\Response {
-	// 	$user = $this->userSession->getUser();
-	// 	if (!$user) {
-	// 		return new JSONResponse(['message' => 'Unauthenticated'], Http::STATUS_UNAUTHORIZED, []);
-	// 	}
-	//
-	// 	$station = $this->stationMapper->findByRemoteUuid($user->getUID(), $uuid);
-	// 	if (!$station) {
-	// 		return new JSONResponse(['message' => 'Station not found'], Http::STATUS_NOT_FOUND, []);
-	// 	}
-	//
-	// 	$streamUrl = $station->getStreamUrl();
-	// 	if (!$streamUrl) {
-	// 		return new JSONResponse(['message' => 'Station has no stream URL'], Http::STATUS_BAD_REQUEST, []);
-	// 	}
-	//
-	// 	return new RedirectResponse($streamUrl);
-	// }
-
-
-	/**
 	 * Stream a radio station by its UUID
 	 *
 	 * @param string $uuid UUID of the radio station
@@ -344,6 +319,7 @@ class RadioController extends OCSController {
 	 * 200: Streaming audio content
 	 * 500: Internal error while fetching stream
 	 */
+	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/radio/{uuid}/stream')]
 	public function streamByUuid(string $uuid): \OCP\AppFramework\Http\Response {

@@ -6,8 +6,8 @@ namespace OCA\Jukebox\Service;
 
 use getID3;
 use OCA\Jukebox\AppInfo\Application;
-use OCA\Jukebox\Db\JukeboxMusic;
-use OCA\Jukebox\Db\JukeboxMusicMapper;
+use OCA\Jukebox\Db\Track;
+use OCA\Jukebox\Db\TrackMapper;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -31,7 +31,7 @@ class MusicScannerService {
 		IUserSession $userSession,
 		private LoggerInterface $logger,
 		private IAppConfig $appConfig,
-		private JukeboxMusicMapper $musicMapper,
+		private TrackMapper $musicMapper,
 		private IDBConnection $db,
 	) {
 		$this->rootFolder = $rootFolder;
@@ -170,7 +170,7 @@ class MusicScannerService {
 
 			// Check for existing
 			$existing = $this->musicMapper->findByUserIdAndPath($userId, $path);
-			$media = $existing ?? new JukeboxMusic();
+			$media = $existing ?? new Track();
 
 			$media->setUserId($userId);
 			$media->setPath($path);

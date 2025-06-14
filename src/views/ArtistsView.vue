@@ -12,11 +12,11 @@
 import { defineComponent, onMounted, ref } from 'vue'
 import { axios } from '@/axios'
 import { useRouter } from 'vue-router'
-import type { Media, Artist } from '@/models/media'
+import type { Track, Artist } from '@/models/media'
 
 import ArtistListItem from '@/components/media/ArtistListItem.vue'
 import Page from '@/components/Page.vue'
-import playback from '@/composables/usePlayback'
+import playback, { trackToPlayable } from '@/composables/usePlayback'
 
 export default defineComponent({
   name: 'ArtistsView',
@@ -38,11 +38,11 @@ export default defineComponent({
       }
     })
 
-    const handlePlay = (track: Media) => {
+    const handlePlay = (track: Track) => {
       for (const artist of artists.value) {
         const index = artist.tracks.findIndex(t => t.id === track.id)
         if (index !== -1) {
-          overwriteQueue([...artist.tracks], index)
+          overwriteQueue(artist.tracks.map(trackToPlayable), index)
           return
         }
       }

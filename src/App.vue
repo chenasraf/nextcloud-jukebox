@@ -31,7 +31,10 @@
             <Tag :size="20" />
           </template>
         </NcAppNavigationItem>
-        <NcAppNavigationItem name="Podcasts" :to="{ path: '/podcasts' }">
+        <NcAppNavigationItem
+          name="Podcasts"
+          :to="{ path: '/podcasts' }"
+          :active="isPrefixRoute('/podcasts')">
           <template #icon>
             <Podcast :size="20" />
           </template>
@@ -65,51 +68,7 @@
         <router-view v-else />
       </div>
       <!-- Media Player -->
-      <footer class="jukebox-player">
-        <div class="controls">
-          <NcButton variant="tertiary" aria-label="Previous" size="normal" @click="playback.prev">
-            <template #icon>
-              <SkipPrevious :size="20" />
-            </template>
-          </NcButton>
-          <NcButton
-            class="play-button"
-            variant="primary"
-            aria-label="Play/Pause"
-            size="normal"
-            @click="playback.togglePlay">
-            <template #icon>
-              <Play :size="24" v-if="!isPlaying" />
-              <Pause :size="24" v-else />
-            </template>
-          </NcButton>
-          <NcButton variant="tertiary" aria-label="Next" size="normal" @click="playback.next">
-            <template #icon>
-              <SkipNext :size="20" />
-            </template>
-          </NcButton>
-          <QueuePopover v-model:shown="showQueue" :queue="queue">
-            <template #trigger>
-              <NcButton variant="tertiary" aria-label="Queue" size="normal" @click="toggleQueue">
-                <template #icon>
-                  <PlaylistMusic :size="20" />
-                </template>
-              </NcButton>
-            </template>
-          </QueuePopover>
-        </div>
-        <div class="seekbar-row">
-          <span class="time">{{ formattedCurrentTime }}</span>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            :value="seek"
-            @input="setSeek(Number(($event.target as HTMLInputElement).value))"
-            class="seekbar" />
-          <span class="time">{{ formattedDuration }}</span>
-        </div>
-      </footer>
+      <MediaControls />
     </NcAppContent>
   </NcContent>
 </template>
@@ -126,8 +85,8 @@
   import NcButton from '@nextcloud/vue/components/NcButton'
   import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
-  import QueuePopover from '@/components/media/QueuePopover.vue'
-  import { type Media } from '@/models/media'
+  import MediaControls from '@/components/media/MediaControls.vue'
+  import { type Track } from '@/models/media'
 
   import SkipPrevious from '@icons/SkipPrevious.vue'
   import SkipNext from '@icons/SkipNext.vue'
@@ -155,7 +114,7 @@
       NcAppNavigationSearch,
       NcLoadingIcon,
       NcButton,
-      QueuePopover,
+      MediaControls,
       SkipPrevious,
       SkipNext,
       Play,
@@ -178,40 +137,19 @@
     setup() {
       const router = useRouter()
       const route = useRoute()
-      const isPrefixRoute = (prefix: string) => route.path.startsWith(prefix)
       const isRouterLoading = ref(true)
 
-      router.beforeEach(() => (isRouterLoading.value = true))
-      router.afterEach(() => (isRouterLoading.value = false))
+      const isPrefixRoute = (prefix: string) => route.path.startsWith(prefix)
 
-      const showQueue = ref(false)
-
-      function toggleQueue() {
-        if (!showQueue.value) {
-          showQueue.value = !showQueue.value
-        }
-      }
-
-      function formatTime(seconds: number): string {
-        const m = Math.floor(seconds / 60)
-        const s = Math.floor(seconds % 60)
-        return `${m}:${s.toString().padStart(2, '0')}`
-      }
-
-      const formattedCurrentTime = computed(() => formatTime(playback.currentTime.value))
-      const formattedDuration = computed(() => formatTime(playback.duration.value))
+      router.beforeEach(() => {
+        isRouterLoading.value = true
+      })
+      router.afterEach(() => {
+        isRouterLoading.value = false
+      })
 
       return {
         searchValue: '',
-        seek: computed(() => playback.seek.value),
-        setSeek: playback.setSeek,
-        playback,
-        queue: computed(() => playback.queue.value),
-        isPlaying: computed(() => playback.isPlaying.value),
-        showQueue,
-        toggleQueue,
-        formattedCurrentTime,
-        formattedDuration,
         isRouterLoading,
         isPrefixRoute,
       }

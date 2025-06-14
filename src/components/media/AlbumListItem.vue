@@ -31,7 +31,7 @@ import type { Album } from '@/models/media'
 import { useRouter } from 'vue-router'
 
 import AlbumCardItem from '@/components/media/AlbumCardItem.vue'
-import playback from '@/composables/usePlayback'
+import playback, { trackToPlayable } from '@/composables/usePlayback'
 
 export default defineComponent({
   name: 'AlbumListItem',
@@ -70,7 +70,7 @@ export default defineComponent({
     }
 
     const playTrack = (index: number) => {
-      overwriteQueue([...props.album.tracks], index)
+      overwriteQueue(props.album.tracks.map(trackToPlayable), index)
     }
 
     const trackListStyle = computed(() => {

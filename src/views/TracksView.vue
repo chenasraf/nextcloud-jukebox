@@ -11,17 +11,17 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref } from 'vue'
 import { axios } from '@/axios'
-import { type Media } from '@/models/media'
+import { type Track } from '@/models/media'
 
 import MediaListItem from '@/components/media/MediaListItem.vue'
 import Page from '@/components/Page.vue'
-import playback from '@/composables/usePlayback'
+import playback, { trackToPlayable } from '@/composables/usePlayback'
 
 export default defineComponent({
   name: 'TracksView',
   components: { MediaListItem, Page },
   setup() {
-    const tracks = ref<Media[]>([])
+    const tracks = ref<Track[]>([])
     const isLoading = ref(true)
     const { overwriteQueue } = playback
 
@@ -36,10 +36,10 @@ export default defineComponent({
       }
     })
 
-    const handlePlay = (track: Media) => {
+    const handlePlay = (track: Track) => {
       const index = tracks.value.findIndex(t => t.id === track.id)
       if (index !== -1) {
-        overwriteQueue([...tracks.value], index)
+        overwriteQueue(tracks.value.map(trackToPlayable), index)
       }
     }
 

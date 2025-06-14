@@ -181,13 +181,13 @@ lint:
 .PHONY: php-cs-fixer
 php-cs-fixer:
 	@echo "\x1b[33mFixing PHP files...\x1b[0m"
-	@FILES=$$(git diff --cached --name-only --diff-filter=ACM | grep '\.php$$'); \
+	@FILES=$$(git diff --cached --name-only --diff-filter=ACM | grep '\.php$$' | grep -v '^gen/'); \
 	if [ -z "$$FILES" ]; then \
 		echo "No PHP files staged."; \
 	else \
 		echo "Running CS fixer on:" $$FILES; \
 		php -l $$FILES || exit 1; \
-		php vendor-bin/cs-fixer/vendor/php-cs-fixer/shim/php-cs-fixer.phar --config=.php-cs-fixer.dist.php fix $$FILES || exit 1; \
+		PHP_CS_FIXER_IGNORE_ENV=true php vendor-bin/cs-fixer/vendor/php-cs-fixer/shim/php-cs-fixer.phar --config=.php-cs-fixer.dist.php fix $$FILES || exit 1; \
 	fi
 
 .PHONY: format

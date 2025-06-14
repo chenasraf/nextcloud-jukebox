@@ -18,9 +18,13 @@ use OCP\AppFramework\Db\Entity;
 class {{pascalCase name}} extends Entity implements JsonSerializable {
 	// protected $fieldName;
 
+	public function __construct() {
+		// $this->addType('fieldName', 'type');
+	}
+
 	public function jsonSerialize(): array {
 		return [
-			// 'field_name' => $this->fieldName,
+			// 'field_name' => $this->getFieldName(),
 		];
 	}
 }

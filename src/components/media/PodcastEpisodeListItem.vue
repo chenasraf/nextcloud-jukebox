@@ -1,12 +1,13 @@
 <template>
-  <NcListItem :active="isActive" :name="media.title || 'Untitled'" @click.prevent="onPlay" :bold="false">
+  <NcListItem :active="isActive" :name="episode.title || 'Untitled Episode'" @click.prevent="onPlay" :bold="false">
     <template #icon>
-      <img v-if="media.albumArt" :src="media.albumArt" alt="Cover" class="cover" width="44" height="44" />
-      <Music v-else :size="44" />
+      <img v-if="cover" :src="cover" alt="Podcast cover" class="cover" width="44" height="44" />
+      <Podcast v-else :size="44" />
     </template>
 
     <template #subname>
-      {{ media.artist || 'Unknown Artist' }} - {{ media.album || 'Unknown Album' }}
+      {{ durationFormatted }} — {{ episode.pub_date ? new Date(episode.pub_date).toLocaleDateString() : 'Unknown date'
+      }}
     </template>
 
     <template #actions>
@@ -38,30 +39,29 @@
   </NcListItem>
 </template>
 
-
 <script lang="ts">
 import { defineComponent, computed, type PropType } from 'vue'
-import { type Track } from '@/models/media'
-import playback, { trackToPlayable } from '@/composables/usePlayback'
+import { type PodcastEpisode } from '@/models/media'
+import playback, { podcastEpisodeToPlayable } from '@/composables/usePlayback'
 
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 
-import Music from '@icons/Music.vue'
+import Podcast from '@icons/Podcast.vue'
 import Play from '@icons/Play.vue'
 import SkipNext from '@icons/SkipNext.vue'
 import PlaylistPlus from '@icons/PlaylistPlus.vue'
 
 export default defineComponent({
-  name: 'MediaListItem',
+  name: 'PodcastEpisodeListItem',
   props: {
-    media: {
-      type: Object as PropType<Track>,
+    episode: {
+      type: Object as PropType<PodcastEpisode>,
       required: true,
     },
-    mediaType: {
+    cover: {
       type: String,
-      required: true,
+      required: false,
     },
     disablePlay: {
       type: Boolean,
@@ -77,9 +77,9 @@ export default defineComponent({
     },
   },
   components: {
-    NcActionButton,
     NcListItem,
-    Music,
+    NcActionButton,
+    Podcast,
     Play,
     SkipNext,
     PlaylistPlus,
@@ -88,14 +88,22 @@ export default defineComponent({
   setup(props, { emit }) {
     const { currentMedia, addToQueue, addAsNext } = playback
 
-    const isActive = computed(() => props.media.id === currentMedia.value?.id)
+    const isActive = computed(() => props.episode.id === currentMedia.value?.id)
 
-    const onPlay = () => emit('play', props.media)
-    const onPlayNext = () => addAsNext(trackToPlayable(props.media))
-    const onAddToQueue = () => addToQueue(trackToPlayable(props.media))
+    const durationFormatted = computed(() => {
+      if (!props.episode.duration) return 'No duration'
+      const minutes = Math.floor(props.episode.duration / 60)
+      const seconds = props.episode.duration % 60
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`
+    })
+
+    const onPlay = () => emit('play', props.episode)
+    const onPlayNext = () => addAsNext(podcastEpisodeToPlayable(props.episode))
+    const onAddToQueue = () => addToQueue(podcastEpisodeToPlayable(props.episode))
 
     return {
       isActive,
+      durationFormatted,
       onPlay,
       onPlayNext,
       onAddToQueue,

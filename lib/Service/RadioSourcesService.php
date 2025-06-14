@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace OCA\Jukebox\Service;
 
-use OCA\Jukebox\Db\JukeboxRadioStation;
-use OCA\Jukebox\Db\JukeboxRadioStationMapper;
+use OCA\Jukebox\Db\RadioStation;
+use OCA\Jukebox\Db\RadioStationMapper;
 use OCP\Http\Client\IClientService;
 use OCP\IDBConnection;
 use Psr\Log\LoggerInterface;
@@ -18,7 +18,7 @@ class RadioSourcesService {
 
 	public function __construct(
 		private LoggerInterface $logger,
-		private JukeboxRadioStationMapper $stationMapper,
+		private RadioStationMapper $stationMapper,
 		private IClientService $httpClientService,
 		private IDBConnection $db,
 	) {
@@ -69,7 +69,7 @@ class RadioSourcesService {
 						}
 
 						$existing = $this->stationMapper->findByRemoteUuid($uuid);
-						$station = $existing ?? new JukeboxRadioStation();
+						$station = $existing ?? new RadioStation();
 
 						$station->setRemoteUuid($uuid);
 						$station->setName($data['name'] ?? '');

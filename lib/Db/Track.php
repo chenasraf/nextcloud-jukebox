@@ -45,7 +45,7 @@ use OCP\AppFramework\Db\Entity;
  * @method bool isFavorited()
  * @method void setFavorited(bool $favorited)
  */
-class JukeboxMusic extends Entity implements JsonSerializable {
+class Track extends Entity implements JsonSerializable {
 	protected string $path = '';
 	protected ?string $title = null;
 	protected ?int $trackNumber = null;

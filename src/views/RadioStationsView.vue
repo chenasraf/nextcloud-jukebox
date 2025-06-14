@@ -11,8 +11,7 @@
       <h4>Favorites</h4>
       <div class="radio-station-list">
         <RadioStationCardItem v-for="station in favorites" :key="station.remoteUuid" :station="station"
-          @click="playStation(station.remoteUuid)" @unfavorite="setFavorite(station, false)"
-          @remove="removeStation(station)" />
+          @click="playStation(station)" @unfavorite="setFavorite(station, false)" @remove="removeStation(station)" />
       </div>
     </div>
 
@@ -29,8 +28,8 @@
       </h4>
       <div class="radio-station-list">
         <RadioStationCardItem v-for="station in stations" :key="station.remoteUuid" :station="station"
-          @click="playStation(station.remoteUuid)" @favorite="setFavorite(station, true)"
-          @unfavorite="setFavorite(station, false)" @remove="removeStation(station)" />
+          @click="playStation(station)" @favorite="setFavorite(station, true)" @unfavorite="setFavorite(station, false)"
+          @remove="removeStation(station)" />
       </div>
     </div>
 
@@ -56,7 +55,7 @@ import SearchRadioStationModal from '@/components/media/SearchRadioStationModal.
 import Plus from '@icons/Plus.vue'
 import type { RadioStation } from '@/models/media'
 // import { useGoToRadioStation } from '@/utils/routing'
-import playback from '@/composables/usePlayback'
+import playback, { radioStationToPlayable } from '@/composables/usePlayback'
 
 export default defineComponent({
   name: 'RadioStationsView',
@@ -73,10 +72,8 @@ export default defineComponent({
     const isSearchModalOpen = ref(false)
     const isLoading = ref(true)
 
-    // const playStation = useGoToRadioStation()
-
-    const playStation = (remoteUuid: string) => {
-      playback.playRadioStation(remoteUuid)
+    const playStation = (station: RadioStation) => {
+      playback.playMedia(radioStationToPlayable(station))
     }
 
     const fetchFavorites = async () => {

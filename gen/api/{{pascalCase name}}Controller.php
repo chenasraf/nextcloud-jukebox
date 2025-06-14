@@ -14,6 +14,7 @@ use OCP\AppFramework\OCSController;
 use OCP\IAppConfig;
 use OCP\IL10N;
 use OCP\IRequest;
+use Psr\Log\LoggerInterface;
 
 class {{pascalCase name}}Controller extends OCSController {
 	/**
@@ -24,6 +25,7 @@ class {{pascalCase name}}Controller extends OCSController {
 		IRequest $request,
 		private IAppConfig $config,
 		private IL10N $l,
+		private LoggerInterface $logger,
 	) {
 		parent::__construct($appName, $request);
 	}

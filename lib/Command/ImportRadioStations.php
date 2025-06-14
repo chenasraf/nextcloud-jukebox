@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Jukebox\Command;
 
-use OCA\Jukebox\Db\JukeboxRadioStationMapper;
+use OCA\Jukebox\Db\RadioStationMapper;
 use OCA\Jukebox\Service\RadioSourcesService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -19,7 +19,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class ImportRadioStations extends Command {
 	public function __construct(
 		private RadioSourcesService $service,
-		private JukeboxRadioStationMapper $stationMapper,
+		private RadioStationMapper $stationMapper,
 	) {
 		parent::__construct();
 	}

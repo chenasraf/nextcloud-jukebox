@@ -41,7 +41,7 @@ use OCP\AppFramework\Db\Entity;
  * @method bool isFavorited()
  * @method void setFavorited(bool $favorited)
  */
-class JukeboxRadioStation extends Entity implements JsonSerializable {
+class RadioStation extends Entity implements JsonSerializable {
 	protected string $remoteUuid = '';
 	protected string $name = '';
 	protected string $streamUrl = '';

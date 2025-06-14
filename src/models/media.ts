@@ -1,4 +1,4 @@
-export interface Media {
+export interface Track {
   id: number
   path: string
   title: string | null
@@ -21,6 +21,32 @@ export interface Media {
   country: string | null
   state: string | null
   language: string | null
+}
+
+export interface PodcastSubscription {
+  id: number
+  subscription_id: number | null
+  title: string | null
+  author: string | null
+  description: string | null
+  url: string | null
+  user_id: string | null
+  image: string | null
+  subscribed: boolean
+  updated: string
+}
+
+export interface PodcastEpisode {
+  id: number
+  action_id: number | null
+  subscription_data_id: number
+  title: string | null
+  guid: string | null
+  pub_date: string | null
+  duration: number | null
+  media_url: string | null
+  description: string | null
+  user_id: string | null
 }
 
 export interface RadioStation {
@@ -47,7 +73,7 @@ export interface Album {
   year: number | null
   cover: string | null
   genre: string | null
-  tracks: Media[]
+  tracks: Track[]
 }
 
 export interface Artist {
@@ -55,5 +81,5 @@ export interface Artist {
   cover: string | null
   genre: string | null
   albums: Album[]
-  tracks: Media[]
+  tracks: Track[]
 }
