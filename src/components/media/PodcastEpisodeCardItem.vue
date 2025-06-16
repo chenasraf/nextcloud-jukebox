@@ -29,6 +29,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import PlayCircle from '@icons/PlayCircle.vue'
 import Delete from '@icons/Delete.vue'
 import type { PodcastEpisode } from '@/models/media'
+import { formatDuration, formatDate } from '@/utils/time'
 
 export default defineComponent({
   name: 'PodcastEpCardItem',
@@ -51,21 +52,6 @@ export default defineComponent({
   setup(_, { emit }) {
     const onClick = () => emit('click')
     const remove = (ep: PodcastEpisode) => emit('remove', ep)
-
-    const formatDate = (iso: string): string => {
-      const date = new Date(iso)
-      return date.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      })
-    }
-
-    const formatDuration = (seconds: number): string => {
-      const m = Math.floor(seconds / 60)
-      const s = seconds % 60
-      return `${m}:${s.toString().padStart(2, '0')}`
-    }
 
     return {
       onClick,

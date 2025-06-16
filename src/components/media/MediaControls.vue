@@ -34,19 +34,22 @@
     </div>
 
     <div class="seekbar-row">
-      <span class="time">{{ formattedCurrentTime }}</span>
-      <input type="range" min="0" max="100" :value="seek" @input="onSeek" class="seekbar" :disabled="isLoading" />
+      <span class="time">{{ displayedCurrentTime }}</span>
+      <div ref="seekbarRef" class="seekbar" @pointerdown="startSeek">
+        <div class="seekbar-fill" :style="{ width: (effectiveSeekPercent * 100) + '%' }"></div>
+      </div>
       <span class="time">{{ formattedDuration }}</span>
     </div>
   </footer>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue'
+import { defineComponent, ref, computed, onBeforeUnmount } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import QueuePopover from '@/components/media/QueuePopover.vue'
-import playback from '@/composables/usePlayback'
+import rawPlayback from '@/composables/usePlayback'
+import { formatDuration } from '@/utils/time'
 
 import SkipPrevious from '@icons/SkipPrevious.vue'
 import SkipNext from '@icons/SkipNext.vue'
@@ -70,47 +73,93 @@ export default defineComponent({
   },
   setup() {
     const showQueue = ref(false)
+    const isDragging = ref(false)
+    const seekPercent = ref(0)
+    const cachedDuration = ref(0)
 
-    function toggleQueue() {
-      if (!showQueue.value) {
-        showQueue.value = true
-      }
+    const seekbarRef = ref<HTMLElement | null>(null)
+    let lastPointerX = 0
+
+    const playback = {
+      ...rawPlayback,
+      queue: computed(() => rawPlayback.queue.value as unknown[] as Track[]),
+      isPlaying: computed(() => rawPlayback.isPlaying.value),
+      isLoading: computed(() => rawPlayback.loading.value),
+      currentTime: computed(() => rawPlayback.currentTime.value),
+      duration: computed(() => rawPlayback.duration.value),
     }
 
-    function formatTime(seconds: number): string {
-      const m = Math.floor(seconds / 60)
-      const s = Math.floor(seconds % 60)
-      return `${m}:${s.toString().padStart(2, '0')}`
+    const formattedCurrentTime = computed(() => formatDuration(playback.currentTime.value))
+    const formattedDuration = computed(() => formatDuration(playback.duration.value))
+    const displayedCurrentTime = computed(() =>
+      isDragging.value
+        ? formatDuration(seekPercent.value * cachedDuration.value)
+        : formattedCurrentTime.value
+    )
+    const effectiveSeekPercent = computed(() =>
+      isDragging.value ? seekPercent.value : (playback.currentTime.value / playback.duration.value)
+    )
+
+    function updateSeekPosition(event: PointerEvent) {
+      if (!seekbarRef.value || playback.duration.value <= 0) return
+
+      const rect = seekbarRef.value.getBoundingClientRect()
+      const offsetX = event.clientX - rect.left
+      const percent = Math.min(Math.max(offsetX / rect.width, 0), 1)
+      seekPercent.value = percent
+      lastPointerX = event.clientX
     }
 
-    const queue = computed(() => playback.queue.value as unknown[] as Track[])
-    const isPlaying = computed(() => playback.isPlaying.value)
-    const seek = computed(() => playback.seek.value)
-    const formattedCurrentTime = computed(() => formatTime(playback.currentTime.value))
-    const formattedDuration = computed(() => formatTime(playback.duration.value))
 
-    const isLoading = computed(() => playback.loading.value)
-
-    function onSeek(event: Event) {
-      const target = event.target as HTMLInputElement
-      playback.setSeek(Number(target.value))
+    function startSeek(event: PointerEvent) {
+      console.log('Seek start')
+      isDragging.value = true
+      cachedDuration.value = playback.duration.value
+      updateSeekPosition(event)
+      window.addEventListener('pointermove', updateSeekPosition)
+      window.addEventListener('pointerup', stopSeek)
     }
+
+    function applySeek() {
+      if (cachedDuration.value <= 0) return
+      const newTime = seekPercent.value * cachedDuration.value
+      console.log(`Seek commit to ${newTime.toFixed(2)}s (of ${cachedDuration.value}s)`)
+      playback.setSeek(newTime)
+    }
+
+    function stopSeek() {
+      if (!isDragging.value) return
+      console.log('Seek end')
+      applySeek()
+      isDragging.value = false
+      window.removeEventListener('pointermove', updateSeekPosition)
+      window.removeEventListener('pointerup', stopSeek)
+    }
+
+    onBeforeUnmount(() => {
+      stopSeek()
+    })
 
     return {
       showQueue,
-      toggleQueue,
+      toggleQueue: () => { showQueue.value = !showQueue.value },
       playback,
-      queue,
-      isPlaying,
-      seek,
+      queue: playback.queue,
+      isPlaying: playback.isPlaying,
+      currentTime: playback.currentTime,
+      duration: playback.duration,
+      isLoading: playback.isLoading,
       formattedCurrentTime,
+      displayedCurrentTime,
       formattedDuration,
-      onSeek,
-      isLoading,
+      effectiveSeekPercent,
+      startSeek,
+      seekbarRef,
     }
   },
 })
 </script>
+
 <style lang="scss">
 .jukebox-player {
   flex-shrink: 0;
@@ -154,7 +203,24 @@ export default defineComponent({
 }
 
 .seekbar {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-border);
+  cursor: pointer;
   flex: 1;
+  user-select: none;
+}
+
+.seekbar-fill {
+  position: absolute;
+  height: 100%;
+  left: 0;
+  top: 0;
+  border-radius: 4px;
+  background: var(--color-primary);
+  pointer-events: none;
 }
 
 .time {

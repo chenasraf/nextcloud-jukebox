@@ -21,7 +21,7 @@
     </div>
 
     <div v-if="artist">
-      <MediaListItem v-for="track in artist.tracks" :key="track.id" :media="track" media-type="track"
+      <TrackListItem v-for="track in artist.tracks" :key="track.id" :media="track" media-type="track"
         @play="handlePlay(track)" />
     </div>
   </Page>
@@ -34,14 +34,14 @@ import { axios } from '@/axios'
 import type { Track, Artist } from '@/models/media'
 
 import Page from '@/components/Page.vue'
-import MediaListItem from '@/components/media/MediaListItem.vue'
+import TrackListItem from '@/components/media/TrackListItem.vue'
 import AlbumCardItem from '@/components/media/AlbumCardItem.vue'
 import Music from '@icons/Music.vue'
 import playback, { trackToPlayable } from '@/composables/usePlayback'
 
 export default defineComponent({
   name: 'ArtistView',
-  components: { Page, MediaListItem, AlbumCardItem, Music },
+  components: { Page, TrackListItem, AlbumCardItem, Music },
   setup() {
     const route = useRoute()
     const artist = ref<Artist | null>(null)

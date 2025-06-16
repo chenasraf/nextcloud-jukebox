@@ -53,7 +53,7 @@ import SkipNext from '@icons/SkipNext.vue'
 import PlaylistPlus from '@icons/PlaylistPlus.vue'
 
 export default defineComponent({
-  name: 'MediaListItem',
+  name: 'TrackListItem',
   props: {
     media: {
       type: Object as PropType<Track>,

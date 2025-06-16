@@ -74,7 +74,7 @@
 </template>
 
 <script lang="ts">
-  import { defineComponent, computed, ref } from 'vue'
+  import { defineComponent, computed, ref, onBeforeUnmount, onBeforeMount } from 'vue'
   import { useRouter, useRoute } from 'vue-router'
 
   import NcAppNavigation from '@nextcloud/vue/components/NcAppNavigation'
@@ -146,6 +146,20 @@
       })
       router.afterEach(() => {
         isRouterLoading.value = false
+      })
+
+      const handleBeforeUnload = () => {
+        if (playback.currentMedia.value && !playback.audio.paused) {
+          playback.trackAction(playback.currentMedia.value, 'pause')
+        }
+      }
+
+      onBeforeMount(() => {
+        window.addEventListener('beforeunload', handleBeforeUnload)
+      })
+
+      onBeforeUnmount(() => {
+        window.removeEventListener('beforeunload', handleBeforeUnload)
       })
 
       return {

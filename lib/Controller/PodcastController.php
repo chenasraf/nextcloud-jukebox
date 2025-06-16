@@ -15,17 +15,23 @@ use OCA\Jukebox\Db\PodcastEpisodePlayMapper;
 use OCA\Jukebox\Db\PodcastSubscription;
 use OCA\Jukebox\Db\PodcastSubscriptionMapper;
 use OCA\Jukebox\Service\PodcastFeedParserService;
+use OCA\Jukebox\Service\SettingsService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\OCSController;
 use OCP\BackgroundJob\IJobList;
-use OCP\IAppConfig;
+use OCP\Files\File;
+use OCP\Files\IMimeTypeDetector;
+use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IUser;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
@@ -33,7 +39,7 @@ class PodcastController extends OCSController {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		private IAppConfig $config,
+		private SettingsService $settings,
 		private IL10N $l,
 		private LoggerInterface $logger,
 		private IUserSession $userSession,
@@ -42,6 +48,8 @@ class PodcastController extends OCSController {
 		private PodcastEpisodePlayMapper $playMapper,
 		private PodcastEpisodeMapper $epMapper,
 		private IJobList $jobList,
+		private IRootFolder $rootFolder,
+		private IMimeTypeDetector $mimeTypeDetector,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -388,6 +396,17 @@ class PodcastController extends OCSController {
 			return new \OCP\AppFramework\Http\JSONResponse(['message' => 'Episode not found'], Http::STATUS_NOT_FOUND);
 		}
 
+		if ($this->settings->getBool($user->getUID(), 'download_podcast_episodes', false)) {
+			return $this->downloadAndStreamLocal($user, $episode);
+		}
+
+		return $this->streamRemote($user, $episode);
+	}
+
+	/**
+	 * @return Http\JSONResponse<int,array|object|stdClass|JsonSerializable,array<string,mixed>>
+	 */
+	private function streamRemote(IUser $user, PodcastEpisode $episode): JSONResponse {
 		$url = $episode->getMediaUrl();
 		if (!$url || !filter_var($url, FILTER_VALIDATE_URL)) {
 			return new \OCP\AppFramework\Http\JSONResponse(['message' => 'Invalid media URL'], Http::STATUS_BAD_REQUEST);
@@ -414,7 +433,7 @@ class PodcastController extends OCSController {
 		if ($response === false || $headerSize === false) {
 			$this->logger->error('Failed to stream podcast episode via cURL', [
 				'userId' => $user->getUID(),
-				'episodeId' => $id,
+				'episodeId' => $episode->getId(),
 			]);
 			return new JSONResponse(['message' => 'Stream failed'], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
@@ -443,6 +462,100 @@ class PodcastController extends OCSController {
 		http_response_code($statusCode);
 		echo $body;
 		exit;
+	}
+
+	/**
+	 * Stream a locally downloaded podcast episode.
+	 * Downloads it if not available locally.
+	 *
+	 * @param IUser $user
+	 * @param PodcastEpisode $episode
+	 *
+	 * @return FileDisplayResponse|JSONResponse
+	 */
+	private function downloadAndStreamLocal(IUser $user, PodcastEpisode $episode): FileDisplayResponse|JSONResponse {
+		try {
+			$path = $this->settings->getPodcastDownloadPath($user->getUID(), $episode->getSubscriptionId(), $episode->getId());
+			$userFolder = $this->rootFolder->getUserFolder($user->getUID());
+
+			// Check if file exists already
+			if (!$userFolder->nodeExists($path)) {
+				$mediaUrl = $episode->getMediaUrl();
+				if (!$mediaUrl || !filter_var($mediaUrl, FILTER_VALIDATE_URL)) {
+					return new JSONResponse(['message' => 'Invalid media URL'], Http::STATUS_BAD_REQUEST);
+				}
+
+				// Download to temporary stream
+				$tempStream = fopen('php://temp', 'r+');
+				$download = @fopen($mediaUrl, 'r');
+				if (!$download) {
+					return new JSONResponse(['message' => 'Failed to download episode'], Http::STATUS_BAD_GATEWAY);
+				}
+				stream_copy_to_stream($download, $tempStream);
+				fclose($download);
+				rewind($tempStream);
+
+				// Ensure intermediate folders exist
+				$segments = explode('/', $path);
+				$fileName = array_pop($segments);
+				$current = $userFolder;
+
+				foreach ($segments as $segment) {
+					if (!$current->nodeExists($segment)) {
+						$current = $current->newFolder($segment);
+					} else {
+						$current = $current->get($segment);
+					}
+				}
+
+				// Create and write the file via stream to preserve range support
+				$file = $current->newFile($fileName);
+				$streamWrapper = $file->fopen('w');
+				stream_copy_to_stream($tempStream, $streamWrapper);
+				fclose($streamWrapper);
+				fclose($tempStream);
+
+				$mimeType = $this->mimeTypeDetector->detect($file->getName());
+				$this->logger->info('Streaming local podcast episode', [
+					'filePath' => $file->getPath(),
+					'fileName' => $file->getName(),
+					'mimeType' => $mimeType,
+				]);
+				$response = new FileDisplayResponse($file, Http::STATUS_PARTIAL_CONTENT);
+				$response->addHeader('Content-Type', $mimeType);
+				return $response;
+			}
+
+			// File already exists, stream it
+			$file = $userFolder->get($path);
+			if (!($file instanceof File)) {
+				throw new NotFoundException();
+			}
+
+			$mimeType = $this->mimeTypeDetector->detect($file->getName());
+			$this->logger->info('Streaming local podcast episode', [
+				'filePath' => $file->getPath(),
+				'fileName' => $file->getName(),
+				'mimeType' => $mimeType,
+			]);
+			$response = new FileDisplayResponse($file, Http::STATUS_PARTIAL_CONTENT);
+			$response->addHeader('Content-Type', $mimeType);
+			return $response;
+		} catch (NotFoundException $e) {
+			$this->logger->error('Local podcast file not found', [
+				'userId' => $user->getUID(),
+				'episodeId' => $episode->getId(),
+				'exception' => $e,
+			]);
+			return new JSONResponse(['message' => 'Episode file not found'], Http::STATUS_NOT_FOUND);
+		} catch (\Throwable $e) {
+			$this->logger->error('Failed to stream or download podcast episode', [
+				'userId' => $user->getUID(),
+				'episodeId' => $episode->getId(),
+				'exception' => $e,
+			]);
+			return new JSONResponse(['message' => 'Internal server error'], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
 	}
 
 	/**

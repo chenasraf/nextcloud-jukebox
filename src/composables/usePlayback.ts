@@ -41,10 +41,9 @@ const loading = ref(false)
 const currentTime = ref(0)
 const duration = ref(0)
 const awaitingSeekResume = ref(false)
-const seek = computed(() =>
-  duration.value > 0 ? (currentTime.value / duration.value) * 100 : 0
-)
 const resumePosition = ref(0)
+let seekInProgress = false
+const suppressTimeUpdate = ref(false)
 
 const currentMedia = computed(() =>
   currentIndex.value >= 0 ? queue.value[currentIndex.value] ?? null : null
@@ -131,19 +130,13 @@ async function playMedia(media: Playable) {
     resumePosition.value = await getStartPosition(media)
     audio.src = src
     audio.load()
-    currentTime.value = resumePosition.value
-  } else {
+  }
+  else {
     resumePosition.value = 0
     awaitingSeekResume.value = false
   }
 
   duration.value = typeof media.duration === 'number' ? media.duration : 0
-
-  audio
-    .play()
-    .catch(err => {
-      console.error('Playback failed:', err)
-    })
 }
 
 function playIndex(index: number) {
@@ -226,9 +219,14 @@ function playFromQueue(media: Playable) {
   }
 }
 
-function setSeek(percent: number) {
-  const newTime = (Number(percent) / 100) * duration.value
+
+function setSeek(newTime: number) {
+  // console.log('[setSeek] Seeking to:', newTime, { currentTime: audio.currentTime, duration: audio.duration });
+  seekInProgress = true
   audio.currentTime = newTime
+  setTimeout(() => {
+    suppressTimeUpdate.value = false
+  }, 200) // 2–3 frames at 60fps
 }
 
 audio.addEventListener('play', () => {
@@ -255,15 +253,23 @@ audio.addEventListener('waiting', () => {
 })
 audio.addEventListener('seeking', () => {
   // console.log('[audio event] seeking');
+  seekInProgress = true
   loading.value = true
 })
 audio.addEventListener('seeked', () => {
   // console.log('[audio event] seeked');
+  seekInProgress = false
   loading.value = false
+  if (!suppressTimeUpdate.value) {
+    currentTime.value = audio.currentTime
+  }
 })
 audio.addEventListener('timeupdate', () => {
+  if (seekInProgress) return
   // console.log('[audio event] timeupdate', { currentTime: audio.currentTime, duration: audio.duration });
-  currentTime.value = audio.currentTime
+  if (!suppressTimeUpdate.value) {
+    currentTime.value = audio.currentTime
+  }
   if (!duration.value && audio.duration) {
     duration.value = audio.duration || 0
   }
@@ -272,11 +278,6 @@ audio.addEventListener('loadedmetadata', () => {
   // console.log('[audio event] loadedmetadata', { duration: audio.duration });
   if (!duration.value && audio.duration) {
     duration.value = audio.duration
-  }
-
-  if (awaitingSeekResume.value && resumePosition.value > 0) {
-    audio.currentTime = resumePosition.value
-    currentTime.value = resumePosition.value
   }
 })
 audio.addEventListener('loadstart', () => {
@@ -288,15 +289,16 @@ audio.addEventListener('canplay', () => {
   // console.log('[audio event] canplay', { resumePosition: resumePosition.value, currentTime: currentTime.value, awaitingSeekResume: awaitingSeekResume.value, currentMedia: currentMedia.value });
   loading.value = false
 
-  audio.play().catch(err => {
-    console.warn('Resume playback after seek failed:', err)
-  })
-
-  if (awaitingSeekResume.value) {
-    trackAction(currentMedia.value!, 'resume')
+  if (awaitingSeekResume.value && resumePosition.value > 0) {
+    audio.currentTime = resumePosition.value
+    currentTime.value = resumePosition.value
     awaitingSeekResume.value = false
     resumePosition.value = 0
   }
+
+  audio.play().catch(err => {
+    console.warn('Resume playback after seek failed:', err)
+  })
 })
 
 audio.addEventListener('error', () => {
@@ -312,6 +314,7 @@ watch(currentMedia, (_newMedia, oldMedia) => {
 
 function usePlayback() {
   return {
+    audio,
     isPlaying,
     currentMedia,
     queue,
@@ -319,7 +322,6 @@ function usePlayback() {
     currentIndex,
     currentTime,
     duration,
-    seek,
     playMedia,
     addToQueue,
     addAsNext,
@@ -333,6 +335,7 @@ function usePlayback() {
     togglePlay,
     pause,
     setSeek,
+    trackAction,
   }
 }
 

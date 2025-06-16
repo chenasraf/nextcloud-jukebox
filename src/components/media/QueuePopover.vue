@@ -10,7 +10,7 @@
       <div class="queue-container" tabindex="0" role="dialog" aria-labelledby="queue-popover-title" ref="popoverRef">
         <h2 id="queue-popover-title" class="popover-title">Playback Queue</h2>
         <div v-if="queue.length > 0" class="queue-list">
-          <MediaListItem v-for="(media, index) in queue" :key="media.id" :media="media" mediaType="track"
+          <TrackListItem v-for="(media, index) in queue" :key="media.id" :media="media" mediaType="track"
             @play="onPlay(media)" disable-play-next disable-add-to-queue>
             <template #actions-end>
               <NcActionButton @click.stop="onRemove(media)">
@@ -20,7 +20,7 @@
                 Remove from Queue
               </NcActionButton>
             </template>
-          </MediaListItem>
+          </TrackListItem>
         </div>
         <p v-else class="empty-message">The queue is empty.</p>
       </div>
@@ -32,7 +32,7 @@
 <script lang="ts">
 import { defineComponent, ref, onMounted, computed, onBeforeUnmount, type PropType } from 'vue'
 import NcPopover from '@nextcloud/vue/components/NcPopover'
-import MediaListItem from '@/components/media/MediaListItem.vue'
+import TrackListItem from '@/components/media/TrackListItem.vue'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import Delete from '@icons/Delete.vue'
 import { type Track } from '@/models/media'
@@ -40,7 +40,7 @@ import playback, { trackToPlayable } from '@/composables/usePlayback'
 
 export default defineComponent({
   name: 'QueuePopover',
-  components: { NcPopover, MediaListItem, NcActionButton, Delete },
+  components: { NcPopover, TrackListItem, NcActionButton, Delete },
   props: {
     shown: Boolean,
     queue: {

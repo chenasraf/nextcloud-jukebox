@@ -1224,13 +1224,6 @@
                         }
                     },
                     {
-                        "name": "range",
-                        "in": "header",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",

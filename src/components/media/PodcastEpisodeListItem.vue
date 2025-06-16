@@ -6,8 +6,7 @@
     </template>
 
     <template #subname>
-      {{ durationFormatted }} — {{ episode.pub_date ? new Date(episode.pub_date).toLocaleDateString() : 'Unknown date'
-      }}
+      {{ durationFormatted }} — {{ pubDateFormatted }}
     </template>
 
     <template #actions>
@@ -43,6 +42,7 @@
 import { defineComponent, computed, type PropType } from 'vue'
 import { type PodcastEpisode } from '@/models/media'
 import playback, { podcastEpisodeToPlayable } from '@/composables/usePlayback'
+import { formatDuration, formatDate } from '@/utils/time'
 
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
@@ -92,9 +92,11 @@ export default defineComponent({
 
     const durationFormatted = computed(() => {
       if (!props.episode.duration) return 'No duration'
-      const minutes = Math.floor(props.episode.duration / 60)
-      const seconds = props.episode.duration % 60
-      return `${minutes}:${seconds.toString().padStart(2, '0')}`
+      return formatDuration(props.episode.duration)
+    })
+    const pubDateFormatted = computed(() => {
+      if (!props.episode.pub_date) return 'Unknown date'
+      return formatDate(props.episode.pub_date)
     })
 
     const onPlay = () => emit('play', props.episode)
@@ -104,6 +106,7 @@ export default defineComponent({
     return {
       isActive,
       durationFormatted,
+      pubDateFormatted,
       onPlay,
       onPlayNext,
       onAddToQueue,

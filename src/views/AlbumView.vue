@@ -20,7 +20,7 @@
     </div>
 
     <div v-if="album">
-      <MediaListItem v-for="track in album.tracks" :key="track.id" :media="track" media-type="track"
+      <TrackListItem v-for="track in album.tracks" :key="track.id" :media="track" media-type="track"
         @play="handlePlay(track)" />
     </div>
   </Page>
@@ -34,14 +34,14 @@ import type { Album, Track } from '@/models/media'
 import { useGoToArtist } from '@/utils/routing'
 
 import Page from '@/components/Page.vue'
-import MediaListItem from '@/components/media/MediaListItem.vue'
+import TrackListItem from '@/components/media/TrackListItem.vue'
 import Music from '@icons/Music.vue'
 import playback, { trackToPlayable } from '@/composables/usePlayback'
 import NcButton from '@nextcloud/vue/components/NcButton'
 
 export default defineComponent({
   name: 'AlbumView',
-  components: { Page, MediaListItem, Music, NcButton },
+  components: { Page, TrackListItem, Music, NcButton },
   setup() {
     const route = useRoute()
     const album = ref<Album | null>(null)

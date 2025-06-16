@@ -4,7 +4,7 @@
       Tracks
     </template>
 
-    <MediaListItem v-for="track in tracks" :key="track.id" :media="track" media-type="track" @play="handlePlay" />
+    <TrackListItem v-for="track in tracks" :key="track.id" :media="track" media-type="track" @play="handlePlay" />
   </Page>
 </template>
 
@@ -13,13 +13,13 @@ import { defineComponent, onMounted, ref } from 'vue'
 import { axios } from '@/axios'
 import { type Track } from '@/models/media'
 
-import MediaListItem from '@/components/media/MediaListItem.vue'
+import TrackListItem from '@/components/media/TrackListItem.vue'
 import Page from '@/components/Page.vue'
 import playback, { trackToPlayable } from '@/composables/usePlayback'
 
 export default defineComponent({
   name: 'TracksView',
-  components: { MediaListItem, Page },
+  components: { TrackListItem, Page },
   setup() {
     const tracks = ref<Track[]>([])
     const isLoading = ref(true)
