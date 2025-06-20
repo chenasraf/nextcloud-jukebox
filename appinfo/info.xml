@@ -42,12 +42,14 @@ It supports music files, podcasts (with gPodder sync), audiobooks, YouTube video
 
 	<background-jobs>
 		<job>OCA\Jukebox\Cron\FetchPodcastEpisodesTask</job>
+		<job>OCA\Jukebox\Cron\ParsePodcastSubscriptionTask</job>
 	</background-jobs>
 
 	<commands>
 		<command>OCA\Jukebox\Command\ScanMusic</command>
 		<command>OCA\Jukebox\Command\ImportRadioStations</command>
 		<command>OCA\Jukebox\Command\PodcastFetchEpisodes</command>
+		<command>OCA\Jukebox\Command\ImportGpodderSync</command>
 	</commands>
 
 	<settings>

@@ -142,22 +142,7 @@ class PodcastController extends OCSController {
 			return new JSONResponse(['error' => 'Failed to parse feed'], Http::STATUS_BAD_REQUEST);
 		}
 
-		$imageBase64 = null;
-		if (!empty($feed['imageUrl']) && filter_var($feed['imageUrl'], FILTER_VALIDATE_URL)) {
-			try {
-				$imageData = @file_get_contents($feed['imageUrl']);
-				if ($imageData !== false) {
-					$mimeType = finfo_buffer(finfo_open(), $imageData, FILEINFO_MIME_TYPE);
-					$imageBase64 = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
-				}
-			} catch (\Throwable $e) {
-				$this->logger->warning('Failed to fetch or encode podcast image', [
-					'url' => $feed['imageUrl'],
-					'userId' => $userId,
-					'error' => $e->getMessage(),
-				]);
-			}
-		}
+		$imageBase64 = $this->parser->fetchImageBase64($feed, $userId);
 
 		$subscription = new PodcastSubscription();
 		$subscription->setUrl($url);

@@ -93,4 +93,16 @@ class PodcastSubscriptionMapper extends QBMapper {
 
 		return $this->findEntity($qb, true);
 	}
+
+	/**
+	 * Find all podcast metadata entries that have not been fetched yet (by missing title)
+	 *
+	 * @return PodcastSubscription[]
+	 */
+	public function findAllUnfetched(): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')->from($this->getTableName())
+			->where($qb->expr()->eq('title', $qb->createNamedParameter('')));
+		return $this->findEntities($qb);
+	}
 }
