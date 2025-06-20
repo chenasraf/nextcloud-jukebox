@@ -1,23 +1,23 @@
-import { useRouter } from "vue-router";
+import { useRouter } from 'vue-router'
 
 export function hashedPath(str: string) {
   return btoa(unescape(encodeURIComponent(str)))
 }
 
 export function getArtistPath(artist: string): string {
-  return `/artists/${hashedPath(artist)}`;
+  return `/artists/${hashedPath(artist)}`
 }
 
 export function getAlbumPath(artist: string, album: string): string {
-  return `/albums/${hashedPath(artist)}/${hashedPath(album)}`;
+  return `/albums/${hashedPath(artist)}/${hashedPath(album)}`
 }
 
 export function getRadioStationPath(uuid: string): string {
-  return `/radio/${uuid}`;
+  return `/radio/${uuid}`
 }
 
 export function getPodcastPath(id: number): string {
-  return `/podcasts/${id}`;
+  return `/podcasts/${id}`
 }
 
 export function useGoToRoute() {

@@ -13,39 +13,40 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType } from 'vue'
-import type { Album } from '@/models/media'
-import { useRouter } from 'vue-router'
-import { useGoToAlbum, useGoToArtist } from '@/utils/routing'
+  import { defineComponent, type PropType } from 'vue'
+  import type { Album } from '@/models/media'
+  import { useRouter } from 'vue-router'
+  import { useGoToAlbum, useGoToArtist } from '@/utils/routing'
 
-import NcButton from '@nextcloud/vue/components/NcButton'
-import Music from '@icons/Music.vue'
+  import NcButton from '@nextcloud/vue/components/NcButton'
+  import Music from '@icons/Music.vue'
 
-export default defineComponent({
-  name: 'AlbumCardItem',
-  props: {
-    album: {
-      type: Object as PropType<Album>,
-      required: true,
+  export default defineComponent({
+    name: 'AlbumCardItem',
+    props: {
+      album: {
+        type: Object as PropType<Album>,
+        required: true,
+      },
+      width: {
+        type: String,
+        default: '128px',
+      },
     },
-    width: {
-      type: String,
-      default: '128px',
+    components: {
+      Music,
+      NcButton,
     },
-  },
-  components: {
-    Music, NcButton
-  },
-  setup(props) {
-    const goToAlbum = useGoToAlbum()
-    const goToArtist = useGoToArtist()
-    return { goToAlbum, goToArtist, width: props.width }
-  },
-})
+    setup(props) {
+      const goToAlbum = useGoToAlbum()
+      const goToArtist = useGoToArtist()
+      return { goToAlbum, goToArtist, width: props.width }
+    },
+  })
 </script>
 
 <style scoped lang="scss">
-.album-card {
+  .album-card {
   padding: 0.75rem;
   border-radius: var(--border-radius-element);
   display: flex;

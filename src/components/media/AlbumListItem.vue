@@ -7,7 +7,9 @@
     <div class="track-list-wrapper">
       <div ref="trackListRef" class="track-list" :style="trackListStyle">
         <ul>
-          <li v-for="(track, index) in album.tracks" :key="track.id"
+          <li
+            v-for="(track, index) in album.tracks"
+            :key="track.id"
             :class="['track', { active: activeId === track.id }]">
             <a href="#" @click.prevent.stop="playTrack(index)">
               {{ track.trackNumber || index + 1 }}. {{ track.title || 'Untitled Track' }}
@@ -26,87 +28,88 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, nextTick, type PropType, watch } from 'vue'
-import type { Album } from '@/models/media'
-import { useRouter } from 'vue-router'
+  import { defineComponent, ref, computed, onMounted, nextTick, type PropType, watch } from 'vue'
+  import type { Album } from '@/models/media'
+  import { useRouter } from 'vue-router'
 
-import AlbumCardItem from '@/components/media/AlbumCardItem.vue'
-import playback, { trackToPlayable } from '@/composables/usePlayback'
+  import AlbumCardItem from '@/components/media/AlbumCardItem.vue'
+  import playback, { trackToPlayable } from '@/composables/usePlayback'
 
-export default defineComponent({
-  name: 'AlbumListItem',
-  props: {
-    album: {
-      type: Object as PropType<Album>,
-      required: true,
+  export default defineComponent({
+    name: 'AlbumListItem',
+    props: {
+      album: {
+        type: Object as PropType<Album>,
+        required: true,
+      },
     },
-  },
-  components: {
-    AlbumCardItem,
-  },
-  setup(props) {
-    const { overwriteQueue, currentMedia } = playback
-    const router = useRouter()
-    const albumCardRef = ref<HTMLElement | null>(null)
+    components: {
+      AlbumCardItem,
+    },
+    setup(props) {
+      const { overwriteQueue, currentMedia } = playback
+      const router = useRouter()
+      const albumCardRef = ref<HTMLElement | null>(null)
 
-    const collapsed = ref(true)
-    const collapsedHeight = ref<number>(128)
-    const expandedHeight = ref(1000)
+      const collapsed = ref(true)
+      const collapsedHeight = ref<number>(128)
+      const expandedHeight = ref(1000)
 
-    const trackListRef = ref<HTMLElement | null>(null)
+      const trackListRef = ref<HTMLElement | null>(null)
 
-    const updateHeights = () => {
-      if (albumCardRef.value) {
-        collapsedHeight.value = albumCardRef.value.offsetHeight
+      const updateHeights = () => {
+        if (albumCardRef.value) {
+          collapsedHeight.value = albumCardRef.value.offsetHeight
+        }
+
+        if (trackListRef.value) {
+          expandedHeight.value = trackListRef.value.scrollHeight
+        }
       }
 
-      if (trackListRef.value) {
-        expandedHeight.value = trackListRef.value.scrollHeight
+      const toggleCollapse = () => {
+        collapsed.value = !collapsed.value
       }
-    }
 
-    const toggleCollapse = () => {
-      collapsed.value = !collapsed.value
-    }
+      const playTrack = (index: number) => {
+        overwriteQueue(props.album.tracks.map(trackToPlayable), index)
+      }
 
-    const playTrack = (index: number) => {
-      overwriteQueue(props.album.tracks.map(trackToPlayable), index)
-    }
+      const trackListStyle = computed(() => {
+        return {
+          maxHeight: collapsed.value ? `${collapsedHeight.value}px` : `${expandedHeight.value}px`,
+          transition: 'max-height 0.4s ease',
+          overflow: 'hidden',
+          maskImage: collapsed.value ? 'linear-gradient(to bottom, black 70%, transparent)' : '',
+          WebkitMaskImage: collapsed.value
+            ? 'linear-gradient(to bottom, black 70%, transparent)'
+            : '',
+        }
+      })
 
-    const trackListStyle = computed(() => {
+      onMounted(() => {
+        nextTick(() => updateHeights())
+      })
+
+      watch(collapsed, () => {
+        nextTick(() => updateHeights())
+      })
+
       return {
-        maxHeight: collapsed.value ? `${collapsedHeight.value}px` : `${expandedHeight.value}px`,
-        transition: 'max-height 0.4s ease',
-        overflow: 'hidden',
-        maskImage: collapsed.value ? 'linear-gradient(to bottom, black 70%, transparent)' : '',
-        WebkitMaskImage: collapsed.value ? 'linear-gradient(to bottom, black 70%, transparent)' : '',
+        collapsed,
+        toggleCollapse,
+        playTrack,
+        trackListRef,
+        trackListStyle,
+        albumCardRef,
+        activeId: computed(() => currentMedia.value?.id),
       }
-    })
-
-    onMounted(() => {
-      nextTick(() => updateHeights())
-    })
-
-    watch(collapsed, () => {
-      nextTick(() => updateHeights())
-    })
-
-
-    return {
-      collapsed,
-      toggleCollapse,
-      playTrack,
-      trackListRef,
-      trackListStyle,
-      albumCardRef,
-      activeId: computed(() => currentMedia.value?.id),
-    }
-  },
-})
+    },
+  })
 </script>
 
 <style scoped lang="scss">
-.album-list-item {
+  .album-list-item {
   display: flex;
   align-items: flex-start;
   gap: 1rem;

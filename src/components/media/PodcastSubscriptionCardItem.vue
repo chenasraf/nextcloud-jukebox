@@ -1,13 +1,21 @@
 <template>
   <div class="podcast-card" :style="{ width }" @click="onClick">
-    <img v-if="subscription.image" :src="subscription.image" alt="Cover" width="128" height="128" class="cover" />
+    <img
+      v-if="subscription.image"
+      :src="subscription.image"
+      alt="Cover"
+      width="128"
+      height="128"
+      class="cover" />
     <Podcast v-else :size="128" />
 
     <div class="metadata-container">
       <div class="metadata">
         <div class="title">{{ subscription.title || 'Untitled Podcast' }}</div>
         <div class="author" v-if="subscription.author">{{ subscription.author }}</div>
-        <div class="description" v-if="subscription.description">{{ subscription.description }}</div>
+        <div class="description" v-if="subscription.description">{{
+          subscription.description
+        }}</div>
         <!-- Optional: show feed URL -->
         <!-- <div class="url" v-if="subscription.url">{{ subscription.url }}</div> -->
       </div>
@@ -22,41 +30,41 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType } from 'vue'
-import NcButton from '@nextcloud/vue/components/NcButton'
-import Podcast from '@icons/Podcast.vue'
-import Delete from '@icons/Delete.vue'
-import type { PodcastSubscription } from '@/models/media'
+  import { defineComponent, type PropType } from 'vue'
+  import NcButton from '@nextcloud/vue/components/NcButton'
+  import Podcast from '@icons/Podcast.vue'
+  import Delete from '@icons/Delete.vue'
+  import type { PodcastSubscription } from '@/models/media'
 
-export default defineComponent({
-  name: 'PodcastSubCardItem',
-  props: {
-    subscription: {
-      type: Object as PropType<PodcastSubscription>,
-      required: true,
+  export default defineComponent({
+    name: 'PodcastSubCardItem',
+    props: {
+      subscription: {
+        type: Object as PropType<PodcastSubscription>,
+        required: true,
+      },
+      width: {
+        type: String,
+        default: '256px',
+      },
     },
-    width: {
-      type: String,
-      default: '256px',
+    emits: ['click', 'remove'],
+    components: {
+      Podcast,
+      Delete,
+      NcButton,
     },
-  },
-  emits: ['click', 'remove'],
-  components: {
-    Podcast,
-    Delete,
-    NcButton,
-  },
-  setup(_, { emit }) {
-    const onClick = () => emit('click')
-    const remove = (sub: PodcastSubscription) => emit('remove', sub)
+    setup(_, { emit }) {
+      const onClick = () => emit('click')
+      const remove = (sub: PodcastSubscription) => emit('remove', sub)
 
-    return { onClick, remove }
-  },
-})
+      return { onClick, remove }
+    },
+  })
 </script>
 
 <style scoped lang="scss">
-.podcast-card {
+  .podcast-card {
   padding: 0.75rem;
   border-radius: var(--border-radius-element);
   display: flex;

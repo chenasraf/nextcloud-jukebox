@@ -46,7 +46,7 @@ let seekInProgress = false
 const suppressTimeUpdate = ref(false)
 
 const currentMedia = computed(() =>
-  currentIndex.value >= 0 ? queue.value[currentIndex.value] ?? null : null
+  currentIndex.value >= 0 ? queue.value[currentIndex.value] ?? null : null,
 )
 
 const streamPaths: Record<string, (_media: Playable) => string> = {
@@ -63,12 +63,11 @@ function getStreamUrl(media: Playable): string {
   return axios.defaults.baseURL + pathResolver(media)
 }
 
-function trackAction(
-  media: Playable,
-  action: 'play' | 'pause' | 'complete' | 'resume'
-) {
-
-  const endpoints: Record<MediaType, { path: string, data: (_media: Playable) => unknown } | undefined> = {
+function trackAction(media: Playable, action: 'play' | 'pause' | 'complete' | 'resume') {
+  const endpoints: Record<
+    MediaType,
+    { path: string; data: (_media: Playable) => unknown } | undefined
+  > = {
     podcast: {
       path: '/podcasts/track',
       data: (media: Playable) => ({
@@ -89,7 +88,9 @@ function trackAction(
 
   const endpoint = endpoints[media.type]!
 
-  axios.post(endpoint.path, endpoint.data(media)).catch(err => console.warn('Tracking failed:', err))
+  axios
+    .post(endpoint.path, endpoint.data(media))
+    .catch((err) => console.warn('Tracking failed:', err))
 }
 
 async function getStartPosition(media: Playable): Promise<number> {
@@ -114,7 +115,7 @@ async function getStartPosition(media: Playable): Promise<number> {
 }
 
 async function playMedia(media: Playable) {
-  const index = queue.value.findIndex(item => item.id === media.id && item.type === media.type)
+  const index = queue.value.findIndex((item) => item.id === media.id && item.type === media.type)
 
   if (index !== -1) {
     currentIndex.value = index
@@ -130,8 +131,7 @@ async function playMedia(media: Playable) {
     resumePosition.value = await getStartPosition(media)
     audio.src = src
     audio.load()
-  }
-  else {
+  } else {
     resumePosition.value = 0
     awaitingSeekResume.value = false
   }
@@ -166,9 +166,7 @@ function pause() {
 
 function togglePlay() {
   if (audio.paused) {
-    audio
-      .play()
-      .catch(err => console.error('Toggle play failed:', err))
+    audio.play().catch((err) => console.error('Toggle play failed:', err))
   } else {
     pause()
   }
@@ -188,7 +186,7 @@ function addAsNext(media: Playable) {
 }
 
 function removeFromQueue(media: Playable) {
-  const index = queue.value.findIndex(item => item.id === media.id && item.type === media.type)
+  const index = queue.value.findIndex((item) => item.id === media.id && item.type === media.type)
   if (index !== -1) {
     queue.value.splice(index, 1)
     if (currentIndex.value >= index) {
@@ -213,12 +211,11 @@ function overwriteQueue(newQueue: Playable[], startIndex = 0) {
 }
 
 function playFromQueue(media: Playable) {
-  const index = queue.value.findIndex(item => item.id === media.id && item.type === media.type)
+  const index = queue.value.findIndex((item) => item.id === media.id && item.type === media.type)
   if (index !== -1) {
     playIndex(index)
   }
 }
-
 
 function setSeek(newTime: number) {
   // console.log('[setSeek] Seeking to:', newTime, { currentTime: audio.currentTime, duration: audio.duration });
@@ -296,7 +293,7 @@ audio.addEventListener('canplay', () => {
     resumePosition.value = 0
   }
 
-  audio.play().catch(err => {
+  audio.play().catch((err) => {
     console.warn('Resume playback after seek failed:', err)
   })
 })

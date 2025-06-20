@@ -160,8 +160,8 @@ class MusicScannerService {
 				?? $file->getName();
 
 			$trackArtist = $info['tags']['id3v2']['artist'][0] ?? '';
-			$albumArtist =
-				$info['tags']['id3v2']['band'][0]
+			$albumArtist
+				= $info['tags']['id3v2']['band'][0]
 				?? $info['tags']['id3v2']['album_artist'][0]
 				?? $info['tags']['quicktime']['album_artist'][0]
 				?? $info['tags']['asf']['WM/AlbumArtist'][0]
@@ -233,9 +233,9 @@ class MusicScannerService {
 			$sanitized = [];
 			foreach ($data as $key => $value) {
 				if (
-					$key === 'data' &&
-					is_string($value) &&
-					isset($data['picturetype']) // heuristic for image
+					$key === 'data'
+					&& is_string($value)
+					&& isset($data['picturetype']) // heuristic for image
 				) {
 					// $sanitized[$key] = base64_encode($value);
 					$sanitized[$key] = '**binary data**'; // avoid large base64 strings in JSON

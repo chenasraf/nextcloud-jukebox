@@ -1,6 +1,12 @@
 <template>
   <div class="radio-card" :style="{ width }" @click="onClick">
-    <img v-if="station.favicon" :src="station.favicon" alt="Favicon" width="128" height="128" class="cover" />
+    <img
+      v-if="station.favicon"
+      :src="station.favicon"
+      alt="Favicon"
+      width="128"
+      height="128"
+      class="cover" />
     <RadioTower v-else :size="128" />
     <div class="metadata-container">
       <div class="metadata">
@@ -38,70 +44,75 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType } from 'vue'
-import { axios } from '@/axios'
-import NcButton from '@nextcloud/vue/components/NcButton'
-import RadioTower from '@icons/RadioTower.vue'
-import Star from '@icons/Star.vue'
-import StarOutline from '@icons/StarOutline.vue'
-import Plus from '@icons/Plus.vue'
-import Delete from '@icons/Delete.vue'
-import type { RadioStation } from '@/models/media'
+  import { defineComponent, type PropType } from 'vue'
+  import { axios } from '@/axios'
+  import NcButton from '@nextcloud/vue/components/NcButton'
+  import RadioTower from '@icons/RadioTower.vue'
+  import Star from '@icons/Star.vue'
+  import StarOutline from '@icons/StarOutline.vue'
+  import Plus from '@icons/Plus.vue'
+  import Delete from '@icons/Delete.vue'
+  import type { RadioStation } from '@/models/media'
 
-export default defineComponent({
-  name: 'RadioStationCardItem',
-  props: {
-    station: {
-      type: Object as PropType<RadioStation>,
-      required: true,
+  export default defineComponent({
+    name: 'RadioStationCardItem',
+    props: {
+      station: {
+        type: Object as PropType<RadioStation>,
+        required: true,
+      },
+      width: {
+        type: String,
+        default: '256px',
+      },
     },
-    width: {
-      type: String,
-      default: '256px',
+    emits: ['click', 'add', 'remove', 'favorite', 'unfavorite'],
+    components: {
+      RadioTower,
+      Star,
+      StarOutline,
+      NcButton,
+      Plus,
+      Delete,
     },
-  },
-  emits: ['click', 'add', 'remove', 'favorite', 'unfavorite'],
-  components: {
-    RadioTower, Star, StarOutline, NcButton, Plus, Delete,
-  },
-  setup(_, { emit }) {
-    const onClick = () => emit('click')
+    setup(_, { emit }) {
+      const onClick = () => emit('click')
 
-    const addStation = async (station: RadioStation) => {
-      try {
-        const res = await axios.post('/radio/stations', { station })
-        emit('add', res.data.station)
-      } catch (err) {
-        console.error('Failed to add radio station:', err)
+      const addStation = async (station: RadioStation) => {
+        try {
+          const res = await axios.post('/radio/stations', { station })
+          emit('add', res.data.station)
+        } catch (err) {
+          console.error('Failed to add radio station:', err)
+        }
       }
-    }
 
-    const setFavorite = async (station: RadioStation, favorited: boolean) => {
-      try {
-        await axios.put(`/radio/stations/${station.remoteUuid}`, { station: { favorited } })
-        station.favorited = favorited
-        emit(favorited ? 'favorite' : 'unfavorite', station)
-      } catch (err) {
-        console.error('Failed to favorite radio station:', err)
+      const setFavorite = async (station: RadioStation, favorited: boolean) => {
+        try {
+          await axios.put(`/radio/stations/${station.remoteUuid}`, { station: { favorited } })
+          station.favorited = favorited
+          emit(favorited ? 'favorite' : 'unfavorite', station)
+        } catch (err) {
+          console.error('Failed to favorite radio station:', err)
+        }
       }
-    }
 
-    const remove = async (station: RadioStation) => {
-      try {
-        await axios.delete(`/radio/stations/${station.remoteUuid}`)
-        emit('remove', station)
-      } catch (err) {
-        console.error('Failed to remove radio station:', err)
+      const remove = async (station: RadioStation) => {
+        try {
+          await axios.delete(`/radio/stations/${station.remoteUuid}`)
+          emit('remove', station)
+        } catch (err) {
+          console.error('Failed to remove radio station:', err)
+        }
       }
-    }
 
-    return { onClick, addStation, setFavorite, remove }
-  },
-})
+      return { onClick, addStation, setFavorite, remove }
+    },
+  })
 </script>
 
 <style scoped lang="scss">
-.radio-card {
+  .radio-card {
   padding: 0.75rem;
   border-radius: var(--border-radius-element);
   display: flex;

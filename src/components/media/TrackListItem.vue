@@ -1,7 +1,17 @@
 <template>
-  <NcListItem :active="isActive" :name="media.title || 'Untitled'" @click.prevent="onPlay" :bold="false">
+  <NcListItem
+    :active="isActive"
+    :name="media.title || 'Untitled'"
+    @click.prevent="onPlay"
+    :bold="false">
     <template #icon>
-      <img v-if="media.albumArt" :src="media.albumArt" alt="Cover" class="cover" width="44" height="44" />
+      <img
+        v-if="media.albumArt"
+        :src="media.albumArt"
+        alt="Cover"
+        class="cover"
+        width="44"
+        height="44" />
       <Music v-else :size="44" />
     </template>
 
@@ -38,74 +48,73 @@
   </NcListItem>
 </template>
 
-
 <script lang="ts">
-import { defineComponent, computed, type PropType } from 'vue'
-import { type Track } from '@/models/media'
-import playback, { trackToPlayable } from '@/composables/usePlayback'
+  import { defineComponent, computed, type PropType } from 'vue'
+  import { type Track } from '@/models/media'
+  import playback, { trackToPlayable } from '@/composables/usePlayback'
 
-import NcListItem from '@nextcloud/vue/components/NcListItem'
-import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+  import NcListItem from '@nextcloud/vue/components/NcListItem'
+  import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 
-import Music from '@icons/Music.vue'
-import Play from '@icons/Play.vue'
-import SkipNext from '@icons/SkipNext.vue'
-import PlaylistPlus from '@icons/PlaylistPlus.vue'
+  import Music from '@icons/Music.vue'
+  import Play from '@icons/Play.vue'
+  import SkipNext from '@icons/SkipNext.vue'
+  import PlaylistPlus from '@icons/PlaylistPlus.vue'
 
-export default defineComponent({
-  name: 'TrackListItem',
-  props: {
-    media: {
-      type: Object as PropType<Track>,
-      required: true,
+  export default defineComponent({
+    name: 'TrackListItem',
+    props: {
+      media: {
+        type: Object as PropType<Track>,
+        required: true,
+      },
+      mediaType: {
+        type: String,
+        required: true,
+      },
+      disablePlay: {
+        type: Boolean,
+        default: false,
+      },
+      disablePlayNext: {
+        type: Boolean,
+        default: false,
+      },
+      disableAddToQueue: {
+        type: Boolean,
+        default: false,
+      },
     },
-    mediaType: {
-      type: String,
-      required: true,
+    components: {
+      NcActionButton,
+      NcListItem,
+      Music,
+      Play,
+      SkipNext,
+      PlaylistPlus,
     },
-    disablePlay: {
-      type: Boolean,
-      default: false,
-    },
-    disablePlayNext: {
-      type: Boolean,
-      default: false,
-    },
-    disableAddToQueue: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  components: {
-    NcActionButton,
-    NcListItem,
-    Music,
-    Play,
-    SkipNext,
-    PlaylistPlus,
-  },
-  emits: ['play'],
-  setup(props, { emit }) {
-    const { currentMedia, addToQueue, addAsNext } = playback
+    emits: ['play'],
+    setup(props, { emit }) {
+      const { currentMedia, addToQueue, addAsNext } = playback
 
-    const isActive = computed(() => props.media.id === currentMedia.value?.id)
+      const isActive = computed(() => props.media.id === currentMedia.value?.id)
 
-    const onPlay = () => emit('play', props.media)
-    const onPlayNext = () => addAsNext(trackToPlayable(props.media))
-    const onAddToQueue = () => addToQueue(trackToPlayable(props.media))
+      const onPlay = () => emit('play', props.media)
+      const onPlayNext = () => addAsNext(trackToPlayable(props.media))
+      const onAddToQueue = () => addToQueue(trackToPlayable(props.media))
 
-    return {
-      isActive,
-      onPlay,
-      onPlayNext,
-      onAddToQueue,
-    }
-  },
-})
+      return {
+        isActive,
+        onPlay,
+        onPlayNext,
+        onAddToQueue,
+      }
+    },
+  })
 </script>
 
 <style scoped lang="scss">
-.cover {
+  .cover {
   border-radius: 4px;
   object-fit: cover;
 }

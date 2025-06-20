@@ -7,15 +7,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+  import { defineComponent } from 'vue'
 
-export default defineComponent({
-  name: 'PageTitle',
-})
+  export default defineComponent({
+    name: 'PageTitle',
+  })
 </script>
 
 <style scoped lang="scss">
-.page-title {
+  .page-title {
   position: sticky;
   top: -16px;
   background: var(--color-main-background);

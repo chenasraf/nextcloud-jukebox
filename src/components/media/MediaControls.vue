@@ -1,13 +1,23 @@
 <template>
   <footer class="jukebox-player">
     <div class="controls">
-      <NcButton variant="tertiary" aria-label="Previous" size="normal" @click="playback.prev" :disabled="isLoading">
+      <NcButton
+        variant="tertiary"
+        aria-label="Previous"
+        size="normal"
+        @click="playback.prev"
+        :disabled="isLoading">
         <template #icon>
           <SkipPrevious :size="20" />
         </template>
       </NcButton>
 
-      <NcButton class="play-button" variant="primary" aria-label="Play/Pause" size="normal" @click="playback.togglePlay"
+      <NcButton
+        class="play-button"
+        variant="primary"
+        aria-label="Play/Pause"
+        size="normal"
+        @click="playback.togglePlay"
         :disabled="isLoading">
         <template #icon>
           <NcLoadingIcon v-if="isLoading" :size="24" />
@@ -16,7 +26,12 @@
         </template>
       </NcButton>
 
-      <NcButton variant="tertiary" aria-label="Next" size="normal" @click="playback.next" :disabled="isLoading">
+      <NcButton
+        variant="tertiary"
+        aria-label="Next"
+        size="normal"
+        @click="playback.next"
+        :disabled="isLoading">
         <template #icon>
           <SkipNext :size="20" />
         </template>
@@ -36,7 +51,7 @@
     <div class="seekbar-row">
       <span class="time">{{ displayedCurrentTime }}</span>
       <div ref="seekbarRef" class="seekbar" @pointerdown="startSeek">
-        <div class="seekbar-fill" :style="{ width: (effectiveSeekPercent * 100) + '%' }"></div>
+        <div class="seekbar-fill" :style="{ width: effectiveSeekPercent * 100 + '%' }"></div>
       </div>
       <span class="time">{{ formattedDuration }}</span>
     </div>
@@ -44,124 +59,125 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onBeforeUnmount } from 'vue'
-import NcButton from '@nextcloud/vue/components/NcButton'
-import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
-import QueuePopover from '@/components/media/QueuePopover.vue'
-import rawPlayback from '@/composables/usePlayback'
-import { formatDuration } from '@/utils/time'
+  import { defineComponent, ref, computed, onBeforeUnmount } from 'vue'
+  import NcButton from '@nextcloud/vue/components/NcButton'
+  import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+  import QueuePopover from '@/components/media/QueuePopover.vue'
+  import rawPlayback from '@/composables/usePlayback'
+  import { formatDuration } from '@/utils/time'
 
-import SkipPrevious from '@icons/SkipPrevious.vue'
-import SkipNext from '@icons/SkipNext.vue'
-import Play from '@icons/Play.vue'
-import Pause from '@icons/Pause.vue'
-import PlaylistMusic from '@icons/PlaylistMusic.vue'
+  import SkipPrevious from '@icons/SkipPrevious.vue'
+  import SkipNext from '@icons/SkipNext.vue'
+  import Play from '@icons/Play.vue'
+  import Pause from '@icons/Pause.vue'
+  import PlaylistMusic from '@icons/PlaylistMusic.vue'
 
-import type { Track } from '@/models/media'
+  import type { Track } from '@/models/media'
 
-export default defineComponent({
-  name: 'MediaControls',
-  components: {
-    NcButton,
-    NcLoadingIcon,
-    QueuePopover,
-    SkipPrevious,
-    SkipNext,
-    Play,
-    Pause,
-    PlaylistMusic,
-  },
-  setup() {
-    const showQueue = ref(false)
-    const isDragging = ref(false)
-    const seekPercent = ref(0)
-    const cachedDuration = ref(0)
+  export default defineComponent({
+    name: 'MediaControls',
+    components: {
+      NcButton,
+      NcLoadingIcon,
+      QueuePopover,
+      SkipPrevious,
+      SkipNext,
+      Play,
+      Pause,
+      PlaylistMusic,
+    },
+    setup() {
+      const showQueue = ref(false)
+      const isDragging = ref(false)
+      const seekPercent = ref(0)
+      const cachedDuration = ref(0)
 
-    const seekbarRef = ref<HTMLElement | null>(null)
-    let lastPointerX = 0
+      const seekbarRef = ref<HTMLElement | null>(null)
+      let lastPointerX = 0
 
-    const playback = {
-      ...rawPlayback,
-      queue: computed(() => rawPlayback.queue.value as unknown[] as Track[]),
-      isPlaying: computed(() => rawPlayback.isPlaying.value),
-      isLoading: computed(() => rawPlayback.loading.value),
-      currentTime: computed(() => rawPlayback.currentTime.value),
-      duration: computed(() => rawPlayback.duration.value),
-    }
+      const playback = {
+        ...rawPlayback,
+        queue: computed(() => rawPlayback.queue.value as unknown[] as Track[]),
+        isPlaying: computed(() => rawPlayback.isPlaying.value),
+        isLoading: computed(() => rawPlayback.loading.value),
+        currentTime: computed(() => rawPlayback.currentTime.value),
+        duration: computed(() => rawPlayback.duration.value),
+      }
 
-    const formattedCurrentTime = computed(() => formatDuration(playback.currentTime.value))
-    const formattedDuration = computed(() => formatDuration(playback.duration.value))
-    const displayedCurrentTime = computed(() =>
-      isDragging.value
-        ? formatDuration(seekPercent.value * cachedDuration.value)
-        : formattedCurrentTime.value
-    )
-    const effectiveSeekPercent = computed(() =>
-      isDragging.value ? seekPercent.value : (playback.currentTime.value / playback.duration.value)
-    )
+      const formattedCurrentTime = computed(() => formatDuration(playback.currentTime.value))
+      const formattedDuration = computed(() => formatDuration(playback.duration.value))
+      const displayedCurrentTime = computed(() =>
+        isDragging.value
+          ? formatDuration(seekPercent.value * cachedDuration.value)
+          : formattedCurrentTime.value,
+      )
+      const effectiveSeekPercent = computed(() =>
+        isDragging.value ? seekPercent.value : playback.currentTime.value / playback.duration.value,
+      )
 
-    function updateSeekPosition(event: PointerEvent) {
-      if (!seekbarRef.value || playback.duration.value <= 0) return
+      function updateSeekPosition(event: PointerEvent) {
+        if (!seekbarRef.value || playback.duration.value <= 0) return
 
-      const rect = seekbarRef.value.getBoundingClientRect()
-      const offsetX = event.clientX - rect.left
-      const percent = Math.min(Math.max(offsetX / rect.width, 0), 1)
-      seekPercent.value = percent
-      lastPointerX = event.clientX
-    }
+        const rect = seekbarRef.value.getBoundingClientRect()
+        const offsetX = event.clientX - rect.left
+        const percent = Math.min(Math.max(offsetX / rect.width, 0), 1)
+        seekPercent.value = percent
+        lastPointerX = event.clientX
+      }
 
+      function startSeek(event: PointerEvent) {
+        console.log('Seek start')
+        isDragging.value = true
+        cachedDuration.value = playback.duration.value
+        updateSeekPosition(event)
+        window.addEventListener('pointermove', updateSeekPosition)
+        window.addEventListener('pointerup', stopSeek)
+      }
 
-    function startSeek(event: PointerEvent) {
-      console.log('Seek start')
-      isDragging.value = true
-      cachedDuration.value = playback.duration.value
-      updateSeekPosition(event)
-      window.addEventListener('pointermove', updateSeekPosition)
-      window.addEventListener('pointerup', stopSeek)
-    }
+      function applySeek() {
+        if (cachedDuration.value <= 0) return
+        const newTime = seekPercent.value * cachedDuration.value
+        console.log(`Seek commit to ${newTime.toFixed(2)}s (of ${cachedDuration.value}s)`)
+        playback.setSeek(newTime)
+      }
 
-    function applySeek() {
-      if (cachedDuration.value <= 0) return
-      const newTime = seekPercent.value * cachedDuration.value
-      console.log(`Seek commit to ${newTime.toFixed(2)}s (of ${cachedDuration.value}s)`)
-      playback.setSeek(newTime)
-    }
+      function stopSeek() {
+        if (!isDragging.value) return
+        console.log('Seek end')
+        applySeek()
+        isDragging.value = false
+        window.removeEventListener('pointermove', updateSeekPosition)
+        window.removeEventListener('pointerup', stopSeek)
+      }
 
-    function stopSeek() {
-      if (!isDragging.value) return
-      console.log('Seek end')
-      applySeek()
-      isDragging.value = false
-      window.removeEventListener('pointermove', updateSeekPosition)
-      window.removeEventListener('pointerup', stopSeek)
-    }
+      onBeforeUnmount(() => {
+        stopSeek()
+      })
 
-    onBeforeUnmount(() => {
-      stopSeek()
-    })
-
-    return {
-      showQueue,
-      toggleQueue: () => { showQueue.value = !showQueue.value },
-      playback,
-      queue: playback.queue,
-      isPlaying: playback.isPlaying,
-      currentTime: playback.currentTime,
-      duration: playback.duration,
-      isLoading: playback.isLoading,
-      formattedCurrentTime,
-      displayedCurrentTime,
-      formattedDuration,
-      effectiveSeekPercent,
-      startSeek,
-      seekbarRef,
-    }
-  },
-})
+      return {
+        showQueue,
+        toggleQueue: () => {
+          showQueue.value = !showQueue.value
+        },
+        playback,
+        queue: playback.queue,
+        isPlaying: playback.isPlaying,
+        currentTime: playback.currentTime,
+        duration: playback.duration,
+        isLoading: playback.isLoading,
+        formattedCurrentTime,
+        displayedCurrentTime,
+        formattedDuration,
+        effectiveSeekPercent,
+        startSeek,
+        seekbarRef,
+      }
+    },
+  })
 </script>
 
 <style lang="scss">
-.jukebox-player {
+  .jukebox-player {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;

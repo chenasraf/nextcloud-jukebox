@@ -16,70 +16,77 @@
     </div>
 
     <div v-if="artist?.albums?.length" class="album-list">
-      <AlbumCardItem v-for="album in artist.albums" :key="`${album.albumArtist}|${album.album}`" width="220px"
+      <AlbumCardItem
+        v-for="album in artist.albums"
+        :key="`${album.albumArtist}|${album.album}`"
+        width="220px"
         :album="album" />
     </div>
 
     <div v-if="artist">
-      <TrackListItem v-for="track in artist.tracks" :key="track.id" :media="track" media-type="track"
+      <TrackListItem
+        v-for="track in artist.tracks"
+        :key="track.id"
+        :media="track"
+        media-type="track"
         @play="handlePlay(track)" />
     </div>
   </Page>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import { axios } from '@/axios'
-import type { Track, Artist } from '@/models/media'
+  import { defineComponent, onMounted, ref } from 'vue'
+  import { useRoute } from 'vue-router'
+  import { axios } from '@/axios'
+  import type { Track, Artist } from '@/models/media'
 
-import Page from '@/components/Page.vue'
-import TrackListItem from '@/components/media/TrackListItem.vue'
-import AlbumCardItem from '@/components/media/AlbumCardItem.vue'
-import Music from '@icons/Music.vue'
-import playback, { trackToPlayable } from '@/composables/usePlayback'
+  import Page from '@/components/Page.vue'
+  import TrackListItem from '@/components/media/TrackListItem.vue'
+  import AlbumCardItem from '@/components/media/AlbumCardItem.vue'
+  import Music from '@icons/Music.vue'
+  import playback, { trackToPlayable } from '@/composables/usePlayback'
 
-export default defineComponent({
-  name: 'ArtistView',
-  components: { Page, TrackListItem, AlbumCardItem, Music },
-  setup() {
-    const route = useRoute()
-    const artist = ref<Artist | null>(null)
-    const isLoading = ref(true)
-    const { overwriteQueue } = playback
+  export default defineComponent({
+    name: 'ArtistView',
+    components: { Page, TrackListItem, AlbumCardItem, Music },
+    setup() {
+      const route = useRoute()
+      const artist = ref<Artist | null>(null)
+      const isLoading = ref(true)
+      const { overwriteQueue } = playback
 
-    onMounted(async () => {
-      const id = decodeURIComponent(route.params.id as string)
-      try {
-        const res = await axios.get(`/music/artists/${id}`)
-        artist.value = res.data
-      } catch (err) {
-        console.error('Failed to load artist:', err)
-      } finally {
-        isLoading.value = false
-      }
-    })
+      onMounted(async () => {
+        const id = decodeURIComponent(route.params.id as string)
+        try {
+          const res = await axios.get(`/music/artists/${id}`)
+          artist.value = res.data
+        } catch (err) {
+          console.error('Failed to load artist:', err)
+        } finally {
+          isLoading.value = false
+        }
+      })
 
-    const handlePlay = (track: Track) => {
-      if (artist.value) {
-        const index = artist.value.tracks.findIndex((t) => t.id === track.id)
-        if (index !== -1) {
-          overwriteQueue(artist.value.tracks.map(trackToPlayable), index)
+      const handlePlay = (track: Track) => {
+        if (artist.value) {
+          const index = artist.value.tracks.findIndex((t) => t.id === track.id)
+          if (index !== -1) {
+            overwriteQueue(artist.value.tracks.map(trackToPlayable), index)
+          }
         }
       }
-    }
 
-    return {
-      artist,
-      isLoading,
-      handlePlay,
-    }
-  },
-})
+      return {
+        artist,
+        isLoading,
+        handlePlay,
+      }
+    },
+  })
 </script>
 
 <style scoped lang="scss">
-.artist-info {
+  .artist-info {
   display: flex;
   align-items: center;
   margin-bottom: 1em;

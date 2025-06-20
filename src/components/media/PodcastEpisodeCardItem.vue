@@ -24,47 +24,47 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, type PropType } from 'vue'
-import NcButton from '@nextcloud/vue/components/NcButton'
-import PlayCircle from '@icons/PlayCircle.vue'
-import Delete from '@icons/Delete.vue'
-import type { PodcastEpisode } from '@/models/media'
-import { formatDuration, formatDate } from '@/utils/time'
+  import { defineComponent, type PropType } from 'vue'
+  import NcButton from '@nextcloud/vue/components/NcButton'
+  import PlayCircle from '@icons/PlayCircle.vue'
+  import Delete from '@icons/Delete.vue'
+  import type { PodcastEpisode } from '@/models/media'
+  import { formatDuration, formatDate } from '@/utils/time'
 
-export default defineComponent({
-  name: 'PodcastEpCardItem',
-  props: {
-    episode: {
-      type: Object as PropType<PodcastEpisode>,
-      required: true,
+  export default defineComponent({
+    name: 'PodcastEpCardItem',
+    props: {
+      episode: {
+        type: Object as PropType<PodcastEpisode>,
+        required: true,
+      },
+      width: {
+        type: String,
+        default: '100%',
+      },
     },
-    width: {
-      type: String,
-      default: '100%',
+    emits: ['click', 'remove'],
+    components: {
+      PlayCircle,
+      Delete,
+      NcButton,
     },
-  },
-  emits: ['click', 'remove'],
-  components: {
-    PlayCircle,
-    Delete,
-    NcButton,
-  },
-  setup(_, { emit }) {
-    const onClick = () => emit('click')
-    const remove = (ep: PodcastEpisode) => emit('remove', ep)
+    setup(_, { emit }) {
+      const onClick = () => emit('click')
+      const remove = (ep: PodcastEpisode) => emit('remove', ep)
 
-    return {
-      onClick,
-      remove,
-      formatDate,
-      formatDuration,
-    }
-  },
-})
+      return {
+        onClick,
+        remove,
+        formatDate,
+        formatDuration,
+      }
+    },
+  })
 </script>
 
 <style scoped lang="scss">
-.episode-card {
+  .episode-card {
   padding: 0.75rem;
   border-radius: var(--border-radius-element);
   display: flex;

@@ -244,8 +244,8 @@ class PodcastController extends OCSController {
 		foreach ($subs as $sub) {
 			$episodes = $this->epMapper->findBySubscription($sub->getId());
 
-			usort($episodes, fn (PodcastEpisode $a, PodcastEpisode $b) =>
-				($a->getPubDate()?->getTimestamp() ?? 0) <=> ($b->getPubDate()?->getTimestamp() ?? 0)
+			usort($episodes, fn (PodcastEpisode $a, PodcastEpisode $b)
+				=> ($a->getPubDate()?->getTimestamp() ?? 0) <=> ($b->getPubDate()?->getTimestamp() ?? 0)
 			);
 
 			foreach ($episodes as $ep) {
@@ -336,8 +336,8 @@ class PodcastController extends OCSController {
 
 		$episodes = $this->epMapper->findBySubscription($user->getUID(), $id);
 
-		usort($episodes, fn ($a, $b) =>
-			($b->getPubDate()?->getTimestamp() ?? 0) <=> ($a->getPubDate()?->getTimestamp() ?? 0)
+		usort($episodes, fn ($a, $b)
+			=> ($b->getPubDate()?->getTimestamp() ?? 0) <=> ($a->getPubDate()?->getTimestamp() ?? 0)
 		);
 
 		return new JSONResponse(['episodes' => array_map(fn ($ep) => $ep->jsonSerialize(), $episodes)], Http::STATUS_OK);
@@ -432,10 +432,10 @@ class PodcastController extends OCSController {
 		// Start clean output
 		header_remove();
 		foreach ($lines as $line) {
-			if (stripos($line, 'Content-Type:') === 0 ||
-				stripos($line, 'Content-Range:') === 0 ||
-				stripos($line, 'Content-Length:') === 0 ||
-				stripos($line, 'Accept-Ranges:') === 0) {
+			if (stripos($line, 'Content-Type:') === 0
+				|| stripos($line, 'Content-Range:') === 0
+				|| stripos($line, 'Content-Length:') === 0
+				|| stripos($line, 'Accept-Ranges:') === 0) {
 				header($line, true);
 			}
 		}

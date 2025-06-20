@@ -9,7 +9,10 @@
 
       <div v-if="searchResults.length">
         <div class="radio-station-list">
-          <RadioStationCardItem v-for="station in searchResults" :key="station.remoteUuid" :station="station"
+          <RadioStationCardItem
+            v-for="station in searchResults"
+            :key="station.remoteUuid"
+            :station="station"
             @add="onAddStation" />
         </div>
       </div>
@@ -30,74 +33,74 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue'
-import NcModal from '@nextcloud/vue/components/NcModal'
-import NcAppNavigationSearch from '@nextcloud/vue/components/NcAppNavigationSearch'
-import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
-import RadioStationCardItem from '@/components/media/RadioStationCardItem.vue'
-import { axios } from '@/axios'
-import type { RadioStation } from '@/models/media'
+  import { defineComponent, ref, watch } from 'vue'
+  import NcModal from '@nextcloud/vue/components/NcModal'
+  import NcAppNavigationSearch from '@nextcloud/vue/components/NcAppNavigationSearch'
+  import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+  import RadioStationCardItem from '@/components/media/RadioStationCardItem.vue'
+  import { axios } from '@/axios'
+  import type { RadioStation } from '@/models/media'
 
-export default defineComponent({
-  name: 'SearchRadioStationModal',
-  components: {
-    NcModal,
-    NcAppNavigationSearch,
-    RadioStationCardItem,
-    NcLoadingIcon,
-  },
-  emits: ['close', 'add-station'],
-  props: {
-    stations: {
-      type: Array as () => RadioStation[],
-      default: () => [],
+  export default defineComponent({
+    name: 'SearchRadioStationModal',
+    components: {
+      NcModal,
+      NcAppNavigationSearch,
+      RadioStationCardItem,
+      NcLoadingIcon,
     },
-  },
-  setup(props, { emit }) {
-    const searchTerm = ref('')
-    const searchResults = ref<RadioStation[]>([])
-    const searching = ref(false)
+    emits: ['close', 'add-station'],
+    props: {
+      stations: {
+        type: Array as () => RadioStation[],
+        default: () => [],
+      },
+    },
+    setup(props, { emit }) {
+      const searchTerm = ref('')
+      const searchResults = ref<RadioStation[]>([])
+      const searching = ref(false)
 
-    const performSearch = async () => {
-      if (!searchTerm.value.trim()) {
-        searchResults.value = []
-        return
+      const performSearch = async () => {
+        if (!searchTerm.value.trim()) {
+          searchResults.value = []
+          return
+        }
+
+        try {
+          const res = await axios.get(`/radio/search/${encodeURIComponent(searchTerm.value)}`)
+          searchResults.value = res.data.stations.filter((station: RadioStation) => {
+            return !props.stations.some((s) => s.remoteUuid === station.remoteUuid)
+          })
+        } catch (err) {
+          console.error('Search failed:', err)
+        }
       }
 
-      try {
-        const res = await axios.get(`/radio/search/${encodeURIComponent(searchTerm.value)}`)
-        searchResults.value = res.data.stations.filter((station: RadioStation) => {
-          return !props.stations.some((s) => s.remoteUuid === station.remoteUuid)
-        })
-      } catch (err) {
-        console.error('Search failed:', err)
+      const onAddStation = (station: RadioStation) => {
+        emit('add-station', station)
+        const index = searchResults.value.findIndex((s) => s.remoteUuid === station.remoteUuid)
+        searchResults.value.splice(index, 1)
       }
-    }
 
-    const onAddStation = (station: RadioStation) => {
-      emit('add-station', station)
-      const index = searchResults.value.findIndex((s) => s.remoteUuid === station.remoteUuid)
-      searchResults.value.splice(index, 1)
-    }
+      let debounceTimeout: number | undefined
+      watch(searchTerm, () => {
+        clearTimeout(debounceTimeout)
+        debounceTimeout = window.setTimeout(performSearch, 400)
+      })
 
-    let debounceTimeout: number | undefined
-    watch(searchTerm, () => {
-      clearTimeout(debounceTimeout)
-      debounceTimeout = window.setTimeout(performSearch, 400)
-    })
-
-    return {
-      searching,
-      searchTerm,
-      searchResults,
-      onAddStation,
-    }
-  },
-})
+      return {
+        searching,
+        searchTerm,
+        searchResults,
+        onAddStation,
+      }
+    },
+  })
 </script>
 
 <style scoped>
-.modal {
+  .modal {
   padding: 1rem;
 }
 

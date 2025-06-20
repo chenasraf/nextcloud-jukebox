@@ -7,11 +7,22 @@
     </template>
 
     <template #default>
-      <div class="queue-container" tabindex="0" role="dialog" aria-labelledby="queue-popover-title" ref="popoverRef">
+      <div
+        class="queue-container"
+        tabindex="0"
+        role="dialog"
+        aria-labelledby="queue-popover-title"
+        ref="popoverRef">
         <h2 id="queue-popover-title" class="popover-title">Playback Queue</h2>
         <div v-if="queue.length > 0" class="queue-list">
-          <TrackListItem v-for="(media, index) in queue" :key="media.id" :media="media" mediaType="track"
-            @play="onPlay(media)" disable-play-next disable-add-to-queue>
+          <TrackListItem
+            v-for="(media, index) in queue"
+            :key="media.id"
+            :media="media"
+            mediaType="track"
+            @play="onPlay(media)"
+            disable-play-next
+            disable-add-to-queue>
             <template #actions-end>
               <NcActionButton @click.stop="onRemove(media)">
                 <template #icon>
@@ -25,75 +36,77 @@
         <p v-else class="empty-message">The queue is empty.</p>
       </div>
     </template>
-
   </NcPopover>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed, onBeforeUnmount, type PropType } from 'vue'
-import NcPopover from '@nextcloud/vue/components/NcPopover'
-import TrackListItem from '@/components/media/TrackListItem.vue'
-import NcActionButton from '@nextcloud/vue/components/NcActionButton'
-import Delete from '@icons/Delete.vue'
-import { type Track } from '@/models/media'
-import playback, { trackToPlayable } from '@/composables/usePlayback'
+  import { defineComponent, ref, onMounted, computed, onBeforeUnmount, type PropType } from 'vue'
+  import NcPopover from '@nextcloud/vue/components/NcPopover'
+  import TrackListItem from '@/components/media/TrackListItem.vue'
+  import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+  import Delete from '@icons/Delete.vue'
+  import { type Track } from '@/models/media'
+  import playback, { trackToPlayable } from '@/composables/usePlayback'
 
-export default defineComponent({
-  name: 'QueuePopover',
-  components: { NcPopover, TrackListItem, NcActionButton, Delete },
-  props: {
-    shown: Boolean,
-    queue: {
-      type: Array as PropType<Track[]>,
-      required: true,
+  export default defineComponent({
+    name: 'QueuePopover',
+    components: { NcPopover, TrackListItem, NcActionButton, Delete },
+    props: {
+      shown: Boolean,
+      queue: {
+        type: Array as PropType<Track[]>,
+        required: true,
+      },
     },
-  },
-  setup(props, { emit }) {
-    const popoverRef = ref<HTMLElement | null>(null)
-    const triggerRef = ref<HTMLElement | null>(null)
+    setup(props, { emit }) {
+      const popoverRef = ref<HTMLElement | null>(null)
+      const triggerRef = ref<HTMLElement | null>(null)
 
-    const onClose = () => {
-      emit('update:shown', false)
-    }
-    const onPlay = (media: Track) => playback.playFromQueue(trackToPlayable(media))
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (!popoverRef.value || !triggerRef.value) return
-      if (!popoverRef.value.contains(event.target as Node) && !triggerRef.value.contains(event.target as Node)) {
-        onClose()
+      const onClose = () => {
+        emit('update:shown', false)
       }
-    }
+      const onPlay = (media: Track) => playback.playFromQueue(trackToPlayable(media))
 
-    onMounted(() => {
-      document.addEventListener('mousedown', handleClickOutside)
-    })
+      const handleClickOutside = (event: MouseEvent) => {
+        if (!popoverRef.value || !triggerRef.value) return
+        if (
+          !popoverRef.value.contains(event.target as Node) &&
+          !triggerRef.value.contains(event.target as Node)
+        ) {
+          onClose()
+        }
+      }
 
-    onBeforeUnmount(() => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    })
+      onMounted(() => {
+        document.addEventListener('mousedown', handleClickOutside)
+      })
 
-    const onRemove = (media: Track) => {
-      playback.removeFromQueue(trackToPlayable(media))
-      emit('update:shown', true)
-    }
+      onBeforeUnmount(() => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      })
 
-    return {
-      shown: computed({
-        get: () => props.shown,
-        set: (val) => emit('update:shown', val),
-      }),
-      onClose,
-      onPlay,
-      onRemove,
-      popoverRef,
-      triggerRef,
-    }
-  },
-})
+      const onRemove = (media: Track) => {
+        playback.removeFromQueue(trackToPlayable(media))
+        emit('update:shown', true)
+      }
+
+      return {
+        shown: computed({
+          get: () => props.shown,
+          set: (val) => emit('update:shown', val),
+        }),
+        onClose,
+        onPlay,
+        onRemove,
+        popoverRef,
+        triggerRef,
+      }
+    },
+  })
 </script>
 
 <style scoped>
-.queue-container {
+  .queue-container {
   width: 500px;
   max-height: 70vh;
   overflow-y: auto;

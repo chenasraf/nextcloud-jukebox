@@ -15,25 +15,25 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import PageTitle from '@/components/PageTitle.vue'
+  import { defineComponent } from 'vue'
+  import PageTitle from '@/components/PageTitle.vue'
 
-import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+  import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
-export default defineComponent({
-  name: 'Page',
-  components: { PageTitle, NcLoadingIcon },
-  props: {
-    loading: {
-      type: Boolean,
-      default: false,
+  export default defineComponent({
+    name: 'Page',
+    components: { PageTitle, NcLoadingIcon },
+    props: {
+      loading: {
+        type: Boolean,
+        default: false,
+      },
     },
-  },
-})
+  })
 </script>
 
 <style scoped lang="scss">
-.page {
+  .page {
   display: flex;
   flex-direction: column;
   height: 100%;
