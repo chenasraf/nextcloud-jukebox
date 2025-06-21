@@ -12,8 +12,8 @@ importers:
         specifier: ^2.5.1
         version: 2.5.1
       '@nextcloud/dialogs':
-        specifier: 7.0.0-rc.0
-        version: 7.0.0-rc.0(typescript@5.8.3)
+        specifier: 7.0.0-rc.1
+        version: 7.0.0-rc.1(typescript@5.8.3)
       '@nextcloud/l10n':
         specifier: ^3.3.0
         version: 3.3.0
@@ -495,8 +495,8 @@ packages:
     resolution: {integrity: sha512-L1NQtOfHWzkfj0Ple1MEJt6HmOHWAi3y4qs+OnwSWexqJT0DtXTVPyRxi7ADyITwRxS5H9R/HMl6USAj4Nr1nQ==}
     engines: {node: ^20.0.0, npm: ^10.0.0}
 
-  '@nextcloud/dialogs@7.0.0-rc.0':
-    resolution: {integrity: sha512-RqoXbSBRzxPUU4g4f5c3sRWwpL6tnuSifZSW+L/xpT5GRfLbzF+tGkMgN1ghC9rmiLb0B5ovPWqABZiwrid9Rw==}
+  '@nextcloud/dialogs@7.0.0-rc.1':
+    resolution: {integrity: sha512-9NzgKFhWE85XV9wKLONYBlPswIVzPctiirbaRTGsLPcB/mCDiFiEErAARPr+RIwRqDNSQHVjHEcRTujfT6t1XA==}
     engines: {node: ^20 || ^22, npm: ^10.0.0}
 
   '@nextcloud/eslint-config@8.4.2':
@@ -4242,11 +4242,12 @@ snapshots:
     dependencies:
       '@nextcloud/initial-state': 2.2.0
 
-  '@nextcloud/dialogs@7.0.0-rc.0(typescript@5.8.3)':
+  '@nextcloud/dialogs@7.0.0-rc.1(typescript@5.8.3)':
     dependencies:
       '@mdi/js': 7.4.47
       '@nextcloud/auth': 2.5.1
       '@nextcloud/axios': 2.5.1
+      '@nextcloud/browser-storage': 0.4.0
       '@nextcloud/event-bus': 3.3.2
       '@nextcloud/files': 3.10.2
       '@nextcloud/initial-state': 2.2.0
