@@ -94,4 +94,31 @@ class PodcastEpisodePlayMapper extends QBMapper {
 
 		return $this->findEntity($qb, true);
 	}
+
+	/**
+	 * Find an existing match in the gpodder database for a user, episode GUID, and timestamp
+	 * @param string $userId
+	 * @param string $guid
+	 * @param int $timestamp
+	 * @return PodcastEpisodePlay
+	 */
+	public function findGpodderExistingMatch(string $userId, string $guid, int $timestamp): ?PodcastEpisodePlay {
+		try {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('id')
+				->from($this->getTableName())
+				->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+				->andWhere($qb->expr()->eq('episode_guid', $qb->createNamedParameter($guid)))
+				->andWhere($qb->expr()->eq('timestamp', $qb->createNamedParameter($timestamp)))
+				->setMaxResults(1);
+
+			return $this->findEntity($qb);
+		} catch (\OCP\AppFramework\Db\DoesNotExistException) {
+			// No match found
+			return null;
+		} catch (\Exception $e) {
+			$this->logger->error('Failed to find gpodder existing match: ' . $e->getMessage());
+			return null;
+		}
+	}
 }

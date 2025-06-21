@@ -33,16 +33,16 @@ use OCP\AppFramework\Db\Entity;
  * @method void setUserId(string $userId)
  */
 class GpodderPodcastEpisodeAction extends Entity implements JsonSerializable {
-	protected string $podcast;
-	protected string $episode;
-	protected string $action;
+	protected string $podcast = '';
+	protected string $episode = '';
+	protected string $action = '';
 	protected int $position = -1;
 	protected int $started = -1;
 	protected int $total = -1;
-	protected string $timestamp;
-	protected int $timestampEpoch;
+	protected string $timestamp = '';
+	protected int $timestampEpoch = 0;
 	protected ?string $guid = null;
-	protected string $userId;
+	protected string $userId = '';
 
 	public function jsonSerialize(): array {
 		return [

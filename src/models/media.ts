@@ -47,6 +47,7 @@ export interface PodcastEpisode {
   media_url: string | null
   description: string | null
   user_id: string | null
+  image: string | null
 }
 
 export interface RadioStation {

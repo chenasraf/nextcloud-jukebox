@@ -20,7 +20,7 @@ use OCP\AppFramework\Db\Entity;
  * @method int getUpdated()
  * @method void setUpdated($value)
  */
-class GpoddePodcastSubscription extends Entity implements JsonSerializable {
+class GpodderPodcastSubscription extends Entity implements JsonSerializable {
 	protected $userId = '';
 	protected $url = '';
 	protected $subscribed = false;

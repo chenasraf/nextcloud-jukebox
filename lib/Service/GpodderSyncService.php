@@ -8,6 +8,8 @@ declare(strict_types=1);
 namespace OCA\Jukebox\Service;
 
 use OCA\Jukebox\Cron\ParsePodcastSubscriptionTask;
+use OCA\Jukebox\Db\GpodderPodcastEpisodeActionMapper;
+use OCA\Jukebox\Db\GpodderPodcastSubscriptionMapper;
 use OCA\Jukebox\Db\PodcastEpisodeMapper;
 use OCA\Jukebox\Db\PodcastEpisodePlay;
 use OCA\Jukebox\Db\PodcastEpisodePlayMapper;
@@ -30,6 +32,8 @@ class GpodderSyncService {
 		private PodcastFeedParserService $parser,
 		private PodcastSubscriptionWriterService $subWriter,
 		private PodcastEpisodeWriterService $epWriter,
+		private GpodderPodcastEpisodeActionMapper $gpEpActionMapper,
+		private GpodderPodcastSubscriptionMapper $gpSubMapper,
 		private IJobList $jobs,
 	) {
 	}
@@ -53,18 +57,13 @@ class GpodderSyncService {
 			return 0;
 		}
 
-		$qb = $this->db->getQueryBuilder();
-		$qb->select('id', 'url')
-			->from('gpodder_subscriptions')
-			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
-
-		$results = $qb->executeQuery()->fetchAll();
+		$results = $this->gpSubMapper->findAllByUserId($userId);
 		$count = 0;
 
 		foreach ($results as $row) {
 			try {
 				// Skip if already linked
-				$this->subMapper->findByGpodderId($userId, (int)$row['id']);
+				$this->subMapper->findByGpodderId($userId, $row->getId());
 				continue;
 			} catch (DoesNotExistException) {
 				// Not yet imported, continue
@@ -72,9 +71,9 @@ class GpodderSyncService {
 
 			$subscription = new PodcastSubscription();
 			$subscription->setUserId($userId);
-			$subscription->setSubscriptionId((int)$row['id']);
+			$subscription->setSubscriptionId($row->getId());
 			$subscription->setTitle('');
-			$subscription->setUrl($row['url']);
+			$subscription->setUrl($row->getUrl());
 			$this->subMapper->insert($subscription);
 			if (!$delayedFetch) {
 				$this->subWriter->fetchSubscriptionMetadata($subscription);
@@ -93,18 +92,13 @@ class GpodderSyncService {
 			return 0;
 		}
 
-		$qb = $this->db->getQueryBuilder();
-		$qb->select('id', 'url')
-			->from('gpodder_subscriptions')
-			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
-
-		$results = $qb->executeQuery()->fetchAll();
+		$results = $this->gpSubMapper->findAllByUserId($userId);
 
 		foreach ($results as $row) {
 			$subscription = null;
 			try {
 				// Skip if already linked
-				$subscription = $this->subMapper->findByGpodderId($userId, (int)$row['id']);
+				$subscription = $this->subMapper->findByGpodderId($userId, $row->getId());
 			} catch (DoesNotExistException) {
 				// Not yet imported, continue
 				continue;
@@ -132,42 +126,48 @@ class GpodderSyncService {
 			return 0;
 		}
 
-		$qb = $this->db->getQueryBuilder();
-		$qb->select('*')
-			->from('gpodder_episode_action')
-			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
-
-		$gpodderPlays = $qb->executeQuery()->fetchAll();
+		$gpodderPlays = $this->gpEpActionMapper->findAllByUserId($userId);
 		$count = 0;
+		$missingEpisodes = [];
 
 		foreach ($gpodderPlays as $row) {
+			$ep = null;
+			if (in_array($row->getGuid(), $missingEpisodes) !== false) {
+				// Skip if we already logged this episode as missing
+				continue;
+			}
 			try {
-				$qb = $this->db->getQueryBuilder();
-				$qb->select('id')
-					->from('jukebox_podcast_ep_plays')
-					->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
-					->andWhere($qb->expr()->eq('episode_id', $qb->createNamedParameter($row['id'])))
-					->andWhere($qb->expr()->eq('timestamp', $qb->createNamedParameter($row['timestamp'])))
-					->setMaxResults(1);
-
-				$result = $qb->executeQuery()->fetchOne();
-				if ($result !== false) {
-					// Already exists, skip
-					continue;
-				}
+				$ep = $this->epMapper->findByGuid($userId, $row->getGuid());
 			} catch (DoesNotExistException) {
-				// Not yet imported, continue
+				// Episode not found, skip this action
+				$this->logger->warning('Episode not found for gpodder action', [
+					'userId' => $userId,
+					'guid' => $row->getGuid(),
+					'action' => $row->getAction(),
+				]);
+				$missingEpisodes[] = $row->getGuid();
+				continue;
+			}
+
+			$result = $this->epPlayMapper->findGpodderExistingMatch(
+				$userId,
+				$row->getGuid(),
+				$row->getTimestampEpoch(),
+			);
+			if ($result !== null) {
+				// Already exists, skip
+				continue;
 			}
 
 			$epPlay = new PodcastEpisodePlay();
 			$epPlay->setUserId($userId);
-			$epPlay->setAction($row['action']);
-			$epPlay->setEpisodeId($row['id']);
-			$epPlay->setTotal($row['total']);
-			$epPlay->setPosition($row['position']);
-			$epPlay->setEpisodeGuid($row['guid']);
+			$epPlay->setAction($row->getAction());
+			$epPlay->setEpisodeId($ep->getId());
+			$epPlay->setTotal($row->getTotal());
+			$epPlay->setPosition($row->getPosition());
+			$epPlay->setEpisodeGuid($row->getGuid());
 			$epPlay->setDevice('gpodder');
-			$epPlay->setTimestamp($row['timestamp_epoch']);
+			$epPlay->setTimestamp($row->getTimestampEpoch());
 
 			$this->epPlayMapper->insert($epPlay);
 			$count++;

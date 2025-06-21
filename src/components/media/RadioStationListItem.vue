@@ -1,11 +1,14 @@
 <template>
-  <NcListItem :active="isActive" :name="episode.title || 'Untitled Episode'" @click.prevent="onPlay" :bold="false">
+  <NcListItem :active="isActive" :name="station.name || 'Unnamed Station'" @click.prevent="onPlay" :bold="false">
     <template #icon>
-      <img v-if="episode.image" :src="episode.image" alt="Podcast cover" class="cover" width="44" height="44" />
+      <img v-if="station.favicon" :src="station.favicon" alt="Station icon" class="cover" width="44" height="44" />
       <Podcast v-else :size="44" />
     </template>
 
-    <template #subname> {{ durationFormatted }} — {{ pubDateFormatted }} </template>
+    <template #subname>
+      {{ codecInfo }}
+      <span v-if="station.country"> — {{ station.country }}</span>
+    </template>
 
     <template #actions>
       <slot name="actions-start" />
@@ -38,9 +41,8 @@
 
 <script lang="ts">
 import { defineComponent, computed, type PropType } from 'vue'
-import { type PodcastEpisode } from '@/models/media'
-import playback, { podcastEpisodeToPlayable } from '@/composables/usePlayback'
-import { formatDuration, formatDate } from '@/utils/time'
+import { type RadioStation } from '@/models/media'
+import playback, { radioStationToPlayable } from '@/composables/usePlayback'
 
 import NcListItem from '@nextcloud/vue/components/NcListItem'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
@@ -51,10 +53,10 @@ import SkipNext from '@icons/SkipNext.vue'
 import PlaylistPlus from '@icons/PlaylistPlus.vue'
 
 export default defineComponent({
-  name: 'PodcastEpisodeListItem',
+  name: 'RadioStationListItem',
   props: {
-    episode: {
-      type: Object as PropType<PodcastEpisode>,
+    station: {
+      type: Object as PropType<RadioStation>,
       required: true,
     },
     disablePlay: {
@@ -82,25 +84,20 @@ export default defineComponent({
   setup(props, { emit }) {
     const { currentMedia, addToQueue, addAsNext } = playback
 
-    const isActive = computed(() => props.episode.id === currentMedia.value?.id)
+    const isActive = computed(() => props.station.id === currentMedia.value?.id)
 
-    const durationFormatted = computed(() => {
-      if (!props.episode.duration) return 'No duration'
-      return formatDuration(props.episode.duration)
-    })
-    const pubDateFormatted = computed(() => {
-      if (!props.episode.pub_date) return 'Unknown date'
-      return formatDate(props.episode.pub_date)
+    const codecInfo = computed(() => {
+      if (!props.station.codec && !props.station.bitrate) return 'Unknown format'
+      return `${props.station.codec || 'Unknown codec'}${props.station.bitrate ? ` (${props.station.bitrate} kbps)` : ''}`
     })
 
-    const onPlay = () => emit('play', props.episode)
-    const onPlayNext = () => addAsNext(podcastEpisodeToPlayable(props.episode))
-    const onAddToQueue = () => addToQueue(podcastEpisodeToPlayable(props.episode))
+    const onPlay = () => emit('play', props.station)
+    const onPlayNext = () => addAsNext(radioStationToPlayable(props.station))
+    const onAddToQueue = () => addToQueue(radioStationToPlayable(props.station))
 
     return {
       isActive,
-      durationFormatted,
-      pubDateFormatted,
+      codecInfo,
       onPlay,
       onPlayNext,
       onAddToQueue,

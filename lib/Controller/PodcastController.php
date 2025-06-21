@@ -327,8 +327,9 @@ class PodcastController extends OCSController {
 			return new JSONResponse([], Http::STATUS_UNAUTHORIZED);
 		}
 
+		$sub = null;
 		try {
-			$this->subMapper->find($user->getUID(), $id);
+			$sub = $this->subMapper->find($user->getUID(), $id);
 		} catch (\OCP\AppFramework\Db\DoesNotExistException) {
 			$this->logger->error('Podcast subscription not found', ['id' => $id, 'userId' => $user->getUID()]);
 			return new JSONResponse(['error' => 'Subscription not found'], Http::STATUS_NOT_FOUND);
@@ -340,7 +341,15 @@ class PodcastController extends OCSController {
 			=> ($b->getPubDate()?->getTimestamp() ?? 0) <=> ($a->getPubDate()?->getTimestamp() ?? 0)
 		);
 
-		return new JSONResponse(['episodes' => array_map(fn ($ep) => $ep->jsonSerialize(), $episodes)], Http::STATUS_OK);
+		return new JSONResponse([
+			'episodes' => array_map(
+				fn ($ep) => array_merge(
+					$ep->jsonSerialize(),
+					['image' => $sub->getImage()]
+				),
+				$episodes
+			)
+		], Http::STATUS_OK);
 	}
 
 	/**

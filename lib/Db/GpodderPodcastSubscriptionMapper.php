@@ -13,20 +13,20 @@ use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
 /**
- * @template-extends QBMapper<GpoddePodcastSubscription>
+ * @template-extends QBMapper<GpodderPodcastSubscription>
  */
-class GpoddePodcastSubscriptionMapper extends QBMapper {
+class GpodderPodcastSubscriptionMapper extends QBMapper {
 	public function __construct(
 		IDBConnection $db,
 	) {
-		parent::__construct($db, 'gpodder_subscriptions', GpoddePodcastSubscription::class);
+		parent::__construct($db, 'gpodder_subscriptions', GpodderPodcastSubscription::class);
 	}
 
 	/**
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException
 	 * @throws DoesNotExistException
 	 */
-	public function find(string $id): GpoddePodcastSubscription {
+	public function find(string $id): GpodderPodcastSubscription {
 		/* @var $qb IQueryBuilder */
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
@@ -38,7 +38,7 @@ class GpoddePodcastSubscriptionMapper extends QBMapper {
 		return $this->findEntity($qb);
 	}
 
-	public function findByUrl(string $userId, string $url): ?GpoddePodcastSubscription {
+	public function findByUrl(string $userId, string $url): ?GpodderPodcastSubscription {
 		/* @var $qb IQueryBuilder */
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
@@ -68,7 +68,7 @@ class GpoddePodcastSubscriptionMapper extends QBMapper {
 	/**
 	 * @param string $userId
 	 * @param bool $subscribed
-	 * @return array<GpoddePodcastSubscription>
+	 * @return array<GpodderPodcastSubscription>
 	 */
 	public function findAllBySubscribed(string $userId, bool $subscribed): array {
 		/* @var $qb IQueryBuilder */
@@ -88,12 +88,26 @@ class GpoddePodcastSubscriptionMapper extends QBMapper {
 
 	/**
 	 * @param string $projectId
-	 * @return array<GpoddePodcastSubscription>
+	 * @return array<GpodderPodcastSubscription>
 	 */
 	public function findAll(): array {
 		/* @var $qb IQueryBuilder */
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')->from($this->getTableName());
+		return $this->findEntities($qb);
+	}
+
+	/**
+	 * Find subscriptions by user ID
+	 * @param string $userId
+	 * @return array<GpodderPodcastSubscription>
+	 */
+	public function findAllByUserId(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
+
 		return $this->findEntities($qb);
 	}
 }

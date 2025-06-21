@@ -5,7 +5,7 @@ import type { Track, PodcastEpisode, RadioStation } from '@/models/media'
 type MediaType = 'track' | 'podcast' | 'radio'
 
 // Base media type
-interface Playable {
+export interface Playable {
   id: number | string
   type: MediaType
   duration?: number | null
@@ -13,24 +13,26 @@ interface Playable {
 }
 
 export function trackToPlayable(track: Track): Playable {
-  return {
-    type: 'track',
-    ...track,
-  }
+  return { type: 'track', ...track, }
 }
 
 export function podcastEpisodeToPlayable(episode: PodcastEpisode): Playable {
-  return {
-    type: 'podcast',
-    ...episode,
-  }
+  return { type: 'podcast', ...episode, }
 }
 
 export function radioStationToPlayable(station: RadioStation): Playable {
-  return {
-    type: 'radio',
-    ...station,
+  return { type: 'radio', ...station, }
+}
+
+export function toPlayable<T extends Track | PodcastEpisode | RadioStation | Playable>(media: T): Playable {
+  if ('trackNumber' in media) {
+    return trackToPlayable(media as Track)
+  } else if ('guid' in media) {
+    return podcastEpisodeToPlayable(media as PodcastEpisode)
+  } else if ('remoteUuid' in media) {
+    return radioStationToPlayable(media as RadioStation)
   }
+  throw new Error('Unsupported media type')
 }
 
 const audio = new Audio()
@@ -52,7 +54,7 @@ const currentMedia = computed(() =>
 const streamPaths: Record<string, (_media: Playable) => string> = {
   track: (media) => `/music/tracks/${media.id}/stream`,
   podcast: (media) => `/podcasts/episodes/${media.id}/stream`,
-  radio: (media) => `/radio/${media.uuid}/stream`,
+  radio: (media) => `/radio/${media.remoteUuid}/stream`,
 }
 
 function getStreamUrl(media: Playable): string {
@@ -66,7 +68,7 @@ function getStreamUrl(media: Playable): string {
 function trackAction(media: Playable, action: 'play' | 'pause' | 'complete' | 'resume') {
   const endpoints: Record<
     MediaType,
-    { path: string; data: (_media: Playable) => unknown } | undefined
+    { path: string; data: (media: Playable) => unknown } | undefined
   > = {
     podcast: {
       path: '/podcasts/track',
