@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * SPDX-FileCopyrightText: Chen Asraf <casraf@pm.me>
+ * SPDX-FileCopyrightText: Chen Asraf <contact@casraf.dev>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
@@ -21,24 +21,24 @@ class Version1Date20250607001010 extends SimpleMigrationStep {
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		$schema = $schemaClosure();
 
-		// Drop existing tables if they exist (dev only)
+		$this->createMusicTable($schema);
+		$this->createRadioStationsTable($schema);
+		$this->createPodcastSubscriptionsTable($schema);
+		$this->createPodcastEpisodesTable($schema);
+		$this->createPodcastEpisodePlaysTable($schema);
+		$this->createVideosTable($schema);
+
+		return $schema;
+	}
+
+	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
+	}
+
+	private function createMusicTable(ISchemaWrapper $schema): void {
 		if ($schema->hasTable('jukebox_music')) {
-			$schema->dropTable('jukebox_music');
-		}
-		if ($schema->hasTable('jukebox_radio_stations')) {
-			$schema->dropTable('jukebox_radio_stations');
-		}
-		if ($schema->hasTable('jukebox_podcast_subs')) {
-			$schema->dropTable('jukebox_podcast_subs');
-		}
-		if ($schema->hasTable('jukebox_podcast_eps')) {
-			$schema->dropTable('jukebox_podcast_eps');
-		}
-		if ($schema->hasTable('jukebox_podcast_ep_plays')) {
-			$schema->dropTable('jukebox_podcast_ep_plays');
+			return;
 		}
 
-		// Music Table
 		$media = $schema->createTable('jukebox_music');
 
 		$media->addColumn('id', 'integer', [
@@ -111,8 +111,13 @@ class Version1Date20250607001010 extends SimpleMigrationStep {
 		$media->setPrimaryKey(['id']);
 		$media->addIndex(['user_id'], 'media_user_idx');
 		$media->addIndex(['path'], 'media_path_idx');
+	}
 
-		// Radio Table
+	private function createRadioStationsTable(ISchemaWrapper $schema): void {
+		if ($schema->hasTable('jukebox_radio_stations')) {
+			return;
+		}
+
 		$radio = $schema->createTable('jukebox_radio_stations');
 
 		$radio->addColumn('id', 'integer', [
@@ -185,8 +190,13 @@ class Version1Date20250607001010 extends SimpleMigrationStep {
 		$radio->setPrimaryKey(['id']);
 		$radio->addUniqueIndex(['remote_uuid', 'user_id'], 'radio_remote_uuid_user_id_idx');
 		$radio->addIndex(['user_id'], 'radio_user_idx');
+	}
 
-		// Podcast Subscription Metadata Table
+	private function createPodcastSubscriptionsTable(ISchemaWrapper $schema): void {
+		if ($schema->hasTable('jukebox_podcast_subs')) {
+			return;
+		}
+
 		$subs = $schema->createTable('jukebox_podcast_subs');
 
 		$subs->addColumn('id', 'integer', [
@@ -234,8 +244,13 @@ class Version1Date20250607001010 extends SimpleMigrationStep {
 
 		$subs->setPrimaryKey(['id']);
 		$subs->addUniqueIndex(['subscription_id'], 'podcast_sub_id_idx');
+	}
 
-		// Podcast Episode Metadata Table
+	private function createPodcastEpisodesTable(ISchemaWrapper $schema): void {
+		if ($schema->hasTable('jukebox_podcast_eps')) {
+			return;
+		}
+
 		$eps = $schema->createTable('jukebox_podcast_eps');
 
 		$eps->addColumn('id', 'integer', [
@@ -281,8 +296,13 @@ class Version1Date20250607001010 extends SimpleMigrationStep {
 		$eps->setPrimaryKey(['id']);
 		$eps->addIndex(['subscription_id'], 'podcast_ep_data_sub_id_idx');
 		$eps->addUniqueIndex(['action_id'], 'podcast_ep_data_action_id_idx');
+	}
 
-		// Podcast Episode Playbacks Table
+	private function createPodcastEpisodePlaysTable(ISchemaWrapper $schema): void {
+		if ($schema->hasTable('jukebox_podcast_ep_plays')) {
+			return;
+		}
+
 		$epPlays = $schema->createTable('jukebox_podcast_ep_plays');
 
 		$epPlays->addColumn('id', 'integer', [
@@ -335,10 +355,87 @@ class Version1Date20250607001010 extends SimpleMigrationStep {
 
 		$epPlays->setPrimaryKey(['id'], 'ep_plays_pk');
 		$epPlays->addIndex(['user_id', 'episode_guid'], 'play_user_guid_idx');
-
-		return $schema;
 	}
 
-	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
+	private function createVideosTable(ISchemaWrapper $schema): void {
+		if ($schema->hasTable('jukebox_videos')) {
+			return;
+		}
+
+		$videos = $schema->createTable('jukebox_videos');
+
+		$videos->addColumn('id', 'integer', [
+			'autoincrement' => true,
+			'notnull' => true,
+		]);
+		$videos->addColumn('path', 'string', [
+			'notnull' => true,
+			'length' => 1024,
+		]);
+		$videos->addColumn('title', 'string', [
+			'notnull' => false,
+			'length' => 255,
+		]);
+		$videos->addColumn('duration', 'integer', [
+			'notnull' => false,
+			'comment' => 'Duration in seconds',
+		]);
+		$videos->addColumn('thumbnail', 'blob', [
+			'notnull' => false,
+			'comment' => 'Raw binary image data for video thumbnail',
+		]);
+		$videos->addColumn('genre', 'string', [
+			'notnull' => false,
+			'length' => 255,
+		]);
+		$videos->addColumn('year', 'smallint', [
+			'notnull' => false,
+		]);
+		$videos->addColumn('bitrate', 'integer', [
+			'notnull' => false,
+			'comment' => 'In kbps',
+		]);
+		$videos->addColumn('width', 'integer', [
+			'notnull' => false,
+			'comment' => 'Video width in pixels',
+		]);
+		$videos->addColumn('height', 'integer', [
+			'notnull' => false,
+			'comment' => 'Video height in pixels',
+		]);
+		$videos->addColumn('video_codec', 'string', [
+			'notnull' => false,
+			'length' => 100,
+		]);
+		$videos->addColumn('audio_codec', 'string', [
+			'notnull' => false,
+			'length' => 100,
+		]);
+		$videos->addColumn('framerate', 'decimal', [
+			'notnull' => false,
+			'precision' => 10,
+			'scale' => 2,
+			'comment' => 'Frames per second',
+		]);
+		$videos->addColumn('user_id', 'string', [
+			'notnull' => true,
+			'length' => 64,
+		]);
+		$videos->addColumn('mtime', 'bigint', [
+			'notnull' => true,
+			'comment' => 'File modified time',
+		]);
+		$videos->addColumn('raw_data', 'text', [
+			'notnull' => false,
+			'comment' => 'Raw metadata as JSON',
+		]);
+		$videos->addColumn('favorited', 'boolean', [
+			'notnull' => false,
+			'default' => false,
+		]);
+
+		$videos->setPrimaryKey(['id']);
+		$videos->addIndex(['user_id'], 'videos_user_idx');
+		$videos->addIndex(['path'], 'videos_path_idx');
 	}
 }

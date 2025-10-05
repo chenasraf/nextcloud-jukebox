@@ -79,6 +79,30 @@
           </div>
         </NcAppSettingsSection>
 
+        <NcAppSettingsSection
+          :name="strings.videosLibrarySettings"
+          id="jukebox-videos-library-settings">
+          <div class="sections">
+            <div class="folder-select-wrapper">
+              <div class="input-with-button">
+                <NcTextField
+                  v-model="videosFolder"
+                  :label="strings.videosFolderLabel"
+                  :placeholder="strings.videosFolderPlaceholder" />
+                <NcButton
+                  @click="openFolderPicker('videosFolder')"
+                  icon="icon-folder"
+                  :aria-label="strings.pickFolder"
+                  :title="strings.pickFolder"
+                  :disabled="loading"
+                  class="folder-button">
+                  {{ strings.pickFolder }}
+                </NcButton>
+              </div>
+            </div>
+          </div>
+        </NcAppSettingsSection>
+
         <div class="submit-buttons">
           <NcButton type="submit" :disabled="loading">{{ strings.save }}</NcButton>
         </div>
@@ -112,6 +136,7 @@
         podcastFolder: '',
         downloadPodcasts: false,
         audiobooksFolder: '',
+        videosFolder: '',
         strings: {
           header: t('jukebox', 'Jukebox'),
           musicLibrarySettings: t('jukebox', 'Music Library'),
@@ -123,6 +148,9 @@
           audiobooksLibrarySettings: t('jukebox', 'Audiobooks Library'),
           audiobooksFolderLabel: t('jukebox', 'Audiobooks Folder Path'),
           audiobooksFolderPlaceholder: t('jukebox', 'e.g. Audiobooks'),
+          videosLibrarySettings: t('jukebox', 'Videos Library'),
+          videosFolderLabel: t('jukebox', 'Videos Folder Path'),
+          videosFolderPlaceholder: t('jukebox', 'e.g. Videos'),
           downloadPodcastsLabel: t('jukebox', 'Download podcasts for offline playback'),
           pickFolder: t('jukebox', 'Pick a folder'),
           save: t('jukebox', 'Save'),
@@ -142,6 +170,7 @@
           this.downloadPodcasts = data.download_podcast_episodes || false
           this.podcastFolder = data.podcast_download_path || 'Podcasts'
           this.audiobooksFolder = data.audiobooks_folder_path || 'Audiobooks'
+          this.videosFolder = data.videos_folder_path || 'Videos'
         } catch (e) {
           console.error('Failed to fetch settings:', e)
         } finally {
@@ -154,11 +183,13 @@
           this.musicFolder = this.cleanPath(this.musicFolder)
           this.podcastFolder = this.cleanPath(this.podcastFolder)
           this.audiobooksFolder = this.cleanPath(this.audiobooksFolder)
+          this.videosFolder = this.cleanPath(this.videosFolder)
           const data = {
             music_folder_path: this.musicFolder,
             download_podcast_episodes: this.downloadPodcasts,
             podcast_download_path: this.podcastFolder,
             audiobooks_folder_path: this.audiobooksFolder,
+            videos_folder_path: this.videosFolder,
           }
           console.log('Saving settings :', data)
           await axios.put('/settings', { data })

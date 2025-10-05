@@ -84,3 +84,23 @@ export interface Artist {
   albums: Album[]
   tracks: Track[]
 }
+
+export interface Video {
+  id: number
+  path: string
+  title: string | null
+  duration: number | null
+  thumbnail: string | null
+  genre: string | null
+  year: number | null
+  bitrate: number | null
+  width: number | null
+  height: number | null
+  videoCodec: string | null
+  audioCodec: string | null
+  framerate: number | null
+  userId: string
+  mtime: number
+  rawData: string | null
+  favorited: boolean
+}

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Jukebox\Service;
 
-// SPDX-FileCopyrightText: Chen Asraf <casraf@pm.me>
+// SPDX-FileCopyrightText: Chen Asraf <contact@casraf.dev>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use DateTimeInterface;

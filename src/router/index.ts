@@ -10,7 +10,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/podcasts', component: () => import('@/views/PodcastsView.vue') },
   { path: '/podcasts/:id', component: () => import('@/views/PodcastView.vue') },
   // { path: '/audiobooks', component: () => import('@/views/AudiobooksView.vue') },
-  // { path: '/videos', component: () => import('@/views/VideosView.vue') },
+  { path: '/videos', component: () => import('@/views/VideosView.vue') },
   // { path: '/genres', component: () => import('@/views/GenresView.vue') },
   { path: '/radio', component: () => import('@/views/RadioStationsView.vue') },
 ]
