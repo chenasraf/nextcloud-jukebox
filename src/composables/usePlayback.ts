@@ -13,18 +13,20 @@ export interface Playable {
 }
 
 export function trackToPlayable(track: Track): Playable {
-  return { type: 'track', ...track, }
+  return { type: 'track', ...track }
 }
 
 export function podcastEpisodeToPlayable(episode: PodcastEpisode): Playable {
-  return { type: 'podcast', ...episode, }
+  return { type: 'podcast', ...episode }
 }
 
 export function radioStationToPlayable(station: RadioStation): Playable {
-  return { type: 'radio', ...station, }
+  return { type: 'radio', ...station }
 }
 
-export function toPlayable<T extends Track | PodcastEpisode | RadioStation | Playable>(media: T): Playable {
+export function toPlayable<T extends Track | PodcastEpisode | RadioStation | Playable>(
+  media: T,
+): Playable {
   if ('trackNumber' in media) {
     return trackToPlayable(media as Track)
   } else if ('guid' in media) {

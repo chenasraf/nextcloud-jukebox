@@ -17,7 +17,9 @@
           :station="station"
           @click="playStation(station)"
           @unfavorite="setFavorite(station, false)"
-          @remove="removeStation(station)" />
+          @remove="removeStation(station)"
+          @play-next="playNext(station)"
+          @add-to-queue="addToQueue(station)" />
       </div>
     </div>
 
@@ -40,7 +42,9 @@
           @click="playStation(station)"
           @favorite="setFavorite(station, true)"
           @unfavorite="setFavorite(station, false)"
-          @remove="removeStation(station)" />
+          @remove="removeStation(station)"
+          @play-next="playNext(station)"
+          @add-to-queue="addToQueue(station)" />
       </div>
     </div>
 
@@ -65,8 +69,7 @@
   import SearchRadioStationModal from '@/components/media/SearchRadioStationModal.vue'
   import Plus from '@icons/Plus.vue'
   import type { RadioStation } from '@/models/media'
-  // import { useGoToRadioStation } from '@/utils/routing'
-  import playback, { radioStationToPlayable } from '@/composables/usePlayback'
+  import playback, { toPlayable } from '@/composables/usePlayback'
 
   export default defineComponent({
     name: 'RadioStationsView',
@@ -84,7 +87,15 @@
       const isLoading = ref(true)
 
       const playStation = (station: RadioStation) => {
-        playback.playMedia(radioStationToPlayable(station))
+        playback.playMedia(toPlayable(station))
+      }
+
+      const addToQueue = (station: RadioStation) => {
+        playback.addToQueue(toPlayable(station))
+      }
+
+      const playNext = (station: RadioStation) => {
+        playback.playNext(toPlayable(station))
       }
 
       const fetchFavorites = async () => {
@@ -150,6 +161,8 @@
         addStation,
         removeStation,
         setFavorite,
+        playNext,
+        addToQueue,
       }
     },
   })

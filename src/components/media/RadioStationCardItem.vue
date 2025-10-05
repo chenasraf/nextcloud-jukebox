@@ -1,5 +1,5 @@
 <template>
-  <div class="radio-card" :style="{ width }" @click="onClick">
+  <div class="radio-card" :style="{ width }" @click="onPlay">
     <img
       v-if="station.favicon"
       :src="station.favicon"
@@ -26,11 +26,40 @@
             </div>
           </template>
         </NcButton>
-        <NcButton class="remove-button" @click.stop="remove(station)">
-          <template #icon>
-            <Delete :size="20" />
-          </template>
-        </NcButton>
+
+        <NcActions class="actions-button" @click.stop="null">
+          <slot name="actions-start" />
+
+          <NcActionButton v-if="!disablePlay" @click.stop="onPlay">
+            <template #icon>
+              <Play :size="20" />
+            </template>
+            Play
+          </NcActionButton>
+
+          <NcActionButton v-if="!disablePlayNext" @click.stop="onPlayNext">
+            <template #icon>
+              <SkipNext :size="20" />
+            </template>
+            Play Next
+          </NcActionButton>
+
+          <NcActionButton v-if="!disableAddToQueue" @click.stop="onAddToQueue">
+            <template #icon>
+              <PlaylistPlus :size="20" />
+            </template>
+            Add to Queue
+          </NcActionButton>
+
+          <NcActionButton v-if="!disableDelete" @click.stop="remove(station)">
+            <template #icon>
+              <Delete :size="20" />
+            </template>
+            Remove
+          </NcActionButton>
+
+          <slot name="actions-end" />
+        </NcActions>
       </div>
       <div v-else>
         <NcButton @click.stop="addStation(station)">
@@ -47,9 +76,14 @@
   import { defineComponent, type PropType } from 'vue'
   import { axios } from '@/axios'
   import NcButton from '@nextcloud/vue/components/NcButton'
+  import NcActions from '@nextcloud/vue/components/NcActions'
+  import NcActionButton from '@nextcloud/vue/components/NcActionButton'
   import RadioTower from '@icons/RadioTower.vue'
   import Star from '@icons/Star.vue'
   import StarOutline from '@icons/StarOutline.vue'
+  import SkipNext from '@icons/SkipNext.vue'
+  import Play from '@icons/Play.vue'
+  import PlaylistPlus from '@icons/PlaylistPlus.vue'
   import Plus from '@icons/Plus.vue'
   import Delete from '@icons/Delete.vue'
   import type { RadioStation } from '@/models/media'
@@ -65,6 +99,22 @@
         type: String,
         default: '256px',
       },
+      disablePlay: {
+        type: Boolean,
+        default: false,
+      },
+      disablePlayNext: {
+        type: Boolean,
+        default: false,
+      },
+      disableAddToQueue: {
+        type: Boolean,
+        default: false,
+      },
+      disableDelete: {
+        type: Boolean,
+        default: false,
+      },
     },
     emits: ['click', 'add', 'remove', 'favorite', 'unfavorite'],
     components: {
@@ -73,10 +123,17 @@
       StarOutline,
       NcButton,
       Plus,
+      Play,
+      SkipNext,
+      PlaylistPlus,
       Delete,
+      NcActions,
+      NcActionButton,
     },
-    setup(_, { emit }) {
-      const onClick = () => emit('click')
+    setup(props, { emit }) {
+      const onPlay = () => emit('click')
+      const onPlayNext = () => emit('play-next', props.station)
+      const onAddToQueue = () => emit('add-to-queue', props.station)
 
       const addStation = async (station: RadioStation) => {
         try {
@@ -106,7 +163,7 @@
         }
       }
 
-      return { onClick, addStation, setFavorite, remove }
+      return { onPlay, onPlayNext, onAddToQueue, addStation, setFavorite, remove }
     },
   })
 </script>
@@ -156,7 +213,7 @@
     gap: 0.5rem;
   }
 
-  .remove-button {
+  .actions-button {
     position: absolute;
     top: 0.5rem;
     right: 0.5rem;
@@ -164,7 +221,7 @@
     opacity: 0;
   }
 
-  &:hover .remove-button {
+  &:hover .actions-button {
     opacity: 1;
   }
 }

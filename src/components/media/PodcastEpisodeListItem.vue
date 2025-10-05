@@ -1,7 +1,17 @@
 <template>
-  <NcListItem :active="isActive" :name="episode.title || 'Untitled Episode'" @click.prevent="onPlay" :bold="false">
+  <NcListItem
+    :active="isActive"
+    :name="episode.title || 'Untitled Episode'"
+    @click.prevent="onPlay"
+    :bold="false">
     <template #icon>
-      <img v-if="episode.image" :src="episode.image" alt="Podcast cover" class="cover" width="44" height="44" />
+      <img
+        v-if="episode.image"
+        :src="episode.image"
+        alt="Podcast cover"
+        class="cover"
+        width="44"
+        height="44" />
       <Podcast v-else :size="44" />
     </template>
 
@@ -37,80 +47,80 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, type PropType } from 'vue'
-import { type PodcastEpisode } from '@/models/media'
-import playback, { podcastEpisodeToPlayable } from '@/composables/usePlayback'
-import { formatDuration, formatDate } from '@/utils/time'
+  import { defineComponent, computed, type PropType } from 'vue'
+  import { type PodcastEpisode } from '@/models/media'
+  import playback, { podcastEpisodeToPlayable } from '@/composables/usePlayback'
+  import { formatDuration, formatDate } from '@/utils/time'
 
-import NcListItem from '@nextcloud/vue/components/NcListItem'
-import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+  import NcListItem from '@nextcloud/vue/components/NcListItem'
+  import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 
-import Podcast from '@icons/Podcast.vue'
-import Play from '@icons/Play.vue'
-import SkipNext from '@icons/SkipNext.vue'
-import PlaylistPlus from '@icons/PlaylistPlus.vue'
+  import Podcast from '@icons/Podcast.vue'
+  import Play from '@icons/Play.vue'
+  import SkipNext from '@icons/SkipNext.vue'
+  import PlaylistPlus from '@icons/PlaylistPlus.vue'
 
-export default defineComponent({
-  name: 'PodcastEpisodeListItem',
-  props: {
-    episode: {
-      type: Object as PropType<PodcastEpisode>,
-      required: true,
+  export default defineComponent({
+    name: 'PodcastEpisodeListItem',
+    props: {
+      episode: {
+        type: Object as PropType<PodcastEpisode>,
+        required: true,
+      },
+      disablePlay: {
+        type: Boolean,
+        default: false,
+      },
+      disablePlayNext: {
+        type: Boolean,
+        default: false,
+      },
+      disableAddToQueue: {
+        type: Boolean,
+        default: false,
+      },
     },
-    disablePlay: {
-      type: Boolean,
-      default: false,
+    components: {
+      NcListItem,
+      NcActionButton,
+      Podcast,
+      Play,
+      SkipNext,
+      PlaylistPlus,
     },
-    disablePlayNext: {
-      type: Boolean,
-      default: false,
+    emits: ['play'],
+    setup(props, { emit }) {
+      const { currentMedia, addToQueue, addAsNext } = playback
+
+      const isActive = computed(() => props.episode.id === currentMedia.value?.id)
+
+      const durationFormatted = computed(() => {
+        if (!props.episode.duration) return 'No duration'
+        return formatDuration(props.episode.duration)
+      })
+      const pubDateFormatted = computed(() => {
+        if (!props.episode.pub_date) return 'Unknown date'
+        return formatDate(props.episode.pub_date)
+      })
+
+      const onPlay = () => emit('play', props.episode)
+      const onPlayNext = () => addAsNext(podcastEpisodeToPlayable(props.episode))
+      const onAddToQueue = () => addToQueue(podcastEpisodeToPlayable(props.episode))
+
+      return {
+        isActive,
+        durationFormatted,
+        pubDateFormatted,
+        onPlay,
+        onPlayNext,
+        onAddToQueue,
+      }
     },
-    disableAddToQueue: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  components: {
-    NcListItem,
-    NcActionButton,
-    Podcast,
-    Play,
-    SkipNext,
-    PlaylistPlus,
-  },
-  emits: ['play'],
-  setup(props, { emit }) {
-    const { currentMedia, addToQueue, addAsNext } = playback
-
-    const isActive = computed(() => props.episode.id === currentMedia.value?.id)
-
-    const durationFormatted = computed(() => {
-      if (!props.episode.duration) return 'No duration'
-      return formatDuration(props.episode.duration)
-    })
-    const pubDateFormatted = computed(() => {
-      if (!props.episode.pub_date) return 'Unknown date'
-      return formatDate(props.episode.pub_date)
-    })
-
-    const onPlay = () => emit('play', props.episode)
-    const onPlayNext = () => addAsNext(podcastEpisodeToPlayable(props.episode))
-    const onAddToQueue = () => addToQueue(podcastEpisodeToPlayable(props.episode))
-
-    return {
-      isActive,
-      durationFormatted,
-      pubDateFormatted,
-      onPlay,
-      onPlayNext,
-      onAddToQueue,
-    }
-  },
-})
+  })
 </script>
 
 <style scoped lang="scss">
-.cover {
+  .cover {
   border-radius: 4px;
   object-fit: cover;
 }
