@@ -24,6 +24,7 @@ class {{pascalCase name}}Mapper extends QBMapper {
 	}
 
 	/**
+	 * @param string $id
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException
 	 * @throws DoesNotExistException
 	 */
@@ -40,7 +41,6 @@ class {{pascalCase name}}Mapper extends QBMapper {
 	}
 
 	/**
-	 * @param string $projectId
 	 * @return array<{{pascalCase name}}>
 	 */
 	public function findAll(): array {
