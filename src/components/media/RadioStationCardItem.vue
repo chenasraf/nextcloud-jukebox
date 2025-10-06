@@ -116,7 +116,7 @@
         default: false,
       },
     },
-    emits: ['click', 'add', 'remove', 'favorite', 'unfavorite'],
+    emits: ['click', 'add', 'remove', 'favorite', 'unfavorite', 'play-next', 'add-to-queue'],
     components: {
       RadioTower,
       Star,

@@ -2,7 +2,7 @@ import { ref, computed, watch } from 'vue'
 import { axios } from '@/axios'
 import type { Track, PodcastEpisode, RadioStation } from '@/models/media'
 
-type MediaType = 'track' | 'podcast' | 'radio'
+type MediaType = 'track' | 'podcast' | 'radio' | 'video'
 
 // Base media type
 export interface Playable {
@@ -57,6 +57,7 @@ const streamPaths: Record<string, (_media: Playable) => string> = {
   track: (media) => `/music/tracks/${media.id}/stream`,
   podcast: (media) => `/podcasts/episodes/${media.id}/stream`,
   radio: (media) => `/radio/${media.remoteUuid}/stream`,
+  video: (media) => `/video/${media.id}/stream`,
 }
 
 function getStreamUrl(media: Playable): string {
@@ -86,6 +87,7 @@ function trackAction(media: Playable, action: 'play' | 'pause' | 'complete' | 'r
     },
     track: undefined,
     radio: undefined,
+    video: undefined,
   }
 
   if (!endpoints[media.type]) return 0
@@ -102,6 +104,7 @@ async function getStartPosition(media: Playable): Promise<number> {
     podcast: (media) => `/podcasts/episodes/${media.id}/position`,
     track: undefined,
     radio: undefined,
+    video: undefined,
   }
   if (!endpoints[media.type]) return 0
   const endpoint = endpoints[media.type]!(media)

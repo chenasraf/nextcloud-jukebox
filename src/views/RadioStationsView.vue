@@ -95,7 +95,7 @@
       }
 
       const playNext = (station: RadioStation) => {
-        playback.playNext(toPlayable(station))
+        playback.addAsNext(toPlayable(station))
       }
 
       const fetchFavorites = async () => {

@@ -73,7 +73,7 @@
       const handlePlay = (episode: PodcastEpisode) => {
         const index = episodes.value.findIndex((e) => e.id === episode.id)
         if (index !== -1) {
-          overwriteQueue([podcastEpisodeToPlayable(episodes.value[index])], index)
+          overwriteQueue([podcastEpisodeToPlayable(episode)], index)
         }
       }
 

@@ -212,10 +212,10 @@
                 const root = node._data.root
                 const fullPath = node._data.attributes.filename
                 const self = this as unknown as Record<string, string>
-                self[folderType] = fullPath.startsWith(root)
+                const path = fullPath.startsWith(root)
                   ? fullPath.slice(root.length) || '/'
                   : fullPath
-                self[folderType] = this.cleanPath(self[folderType])
+                self[folderType] = this.cleanPath(path)
                 // console.log('Selected folder path:', self[folderType])
               },
             })

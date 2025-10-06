@@ -118,6 +118,7 @@ class VideoScannerService {
 	private function processVideoFile(File $file, string $uid): void {
 		$this->logger->info('Processing video file: ' . $file->getPath());
 
+		// TODO - don't copy file to process, process in place if possible
 		$tempPath = tempnam(sys_get_temp_dir(), 'jukebox_video_');
 		if ($tempPath === false) {
 			$this->logger->error('Could not create temporary file for video processing.');

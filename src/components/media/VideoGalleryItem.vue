@@ -2,7 +2,7 @@
   <div class="video-card" :style="{ width }" @click="handleClick">
     <div class="thumbnail-container">
       <img v-if="video.thumbnail" :src="video.thumbnail" alt="Thumbnail" class="thumbnail" />
-      <Video v-else :size="96" class="placeholder-icon" />
+      <VideoIcon v-else :size="96" class="placeholder-icon" />
       <div class="duration-overlay" v-if="video.duration">
         {{ formatDuration(video.duration) }}
       </div>
@@ -23,7 +23,7 @@
   import { defineComponent, type PropType } from 'vue'
   import type { Video } from '@/models/media'
 
-  import Video from '@icons/Video.vue'
+  import VideoIcon from '@icons/Video.vue'
 
   export default defineComponent({
     name: 'VideoGalleryItem',
@@ -38,7 +38,7 @@
       },
     },
     components: {
-      Video,
+      VideoIcon,
     },
     emits: ['play'],
     setup(props, { emit }) {
