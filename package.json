@@ -27,6 +27,7 @@
     "chart.js": "^4.5.0",
     "date-fns": "^4.1.0",
     "linkifyjs": "^4.3.2",
+    "video.js": "^8.23.4",
     "vue": "^3.5.22",
     "vue-material-design-icons": "^5.3.1"
   },

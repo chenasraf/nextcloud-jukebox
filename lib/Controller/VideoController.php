@@ -120,7 +120,27 @@ class VideoController extends OCSController {
 
 			// Get file info
 			$fileSize = $file->getSize();
-			$mimeType = $file->getMimeType();
+
+			// Override MIME type based on file extension for better browser compatibility
+			$fileName = $file->getName();
+			$extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+			$mimeTypeMap = [
+				'mp4' => 'video/mp4',
+				'webm' => 'video/webm',
+				'ogg' => 'video/ogg',
+				'ogv' => 'video/ogg',
+				'mkv' => 'video/webm', // Try webm MIME type as webm is a subset of MKV
+				'avi' => 'video/x-msvideo',
+				'mov' => 'video/quicktime',
+			];
+			$mimeType = $mimeTypeMap[$extension] ?? $file->getMimeType();
+
+			$this->logger->info('Streaming video file', [
+				'fileName' => $fileName,
+				'extension' => $extension,
+				'mimeType' => $mimeType,
+				'fileSize' => $fileSize,
+			]);
 
 			// Handle range requests for video seeking
 			$rangeHeader = $this->request->getHeader('range');

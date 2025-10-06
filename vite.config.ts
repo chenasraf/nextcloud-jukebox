@@ -28,6 +28,7 @@ export default createAppConfig(
                 if (id.includes('vue')) return 'vue'
                 if (id.includes('vue-router')) return 'vue-router'
                 if (id.includes('axios')) return 'axios'
+                if (id.includes('video.js')) return 'video-js'
                 return 'vendor' // fallback for other deps
               }
             },
