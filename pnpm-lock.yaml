@@ -20,9 +20,6 @@ importers:
       '@nextcloud/router':
         specifier: ^3.0.1
         version: 3.0.1
-      '@nextcloud/vite-config':
-        specifier: 2.3.5
-        version: 2.3.5(@types/node@20.17.10)(browserslist@4.26.3)(picomatch@4.0.3)(rollup@4.52.4)(sass@1.93.2)(typescript@5.9.3)(vite@6.3.6(@types/node@20.17.10)(sass-embedded@1.93.2)(sass@1.93.2)(yaml@2.8.1))(vue@3.5.22(typescript@5.9.3))
       '@nextcloud/vue':
         specifier: ^9.0.0
         version: 9.0.0(typescript@5.9.3)
@@ -54,6 +51,9 @@ importers:
       '@nextcloud/stylelint-config':
         specifier: ^3.1.0
         version: 3.1.0(stylelint-config-recommended-scss@13.1.0(postcss@8.5.6)(stylelint@16.11.0(typescript@5.9.3)))(stylelint-config-recommended-vue@1.5.0(postcss-html@1.7.0)(stylelint@16.11.0(typescript@5.9.3)))(stylelint@16.11.0(typescript@5.9.3))
+      '@nextcloud/vite-config':
+        specifier: 2.3.5
+        version: 2.3.5(@types/node@20.17.10)(browserslist@4.26.3)(picomatch@4.0.3)(rollup@4.52.4)(sass@1.93.2)(typescript@5.9.3)(vite@6.3.6(@types/node@20.17.10)(sass-embedded@1.93.2)(sass@1.93.2)(yaml@2.8.1))(vue@3.5.22(typescript@5.9.3))
       '@vue/tsconfig':
         specifier: ^0.8.1
         version: 0.8.1(typescript@5.9.3)(vue@3.5.22(typescript@5.9.3))
