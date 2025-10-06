@@ -23,6 +23,7 @@ export default createAppConfig(
           output: {
             manualChunks(id) {
               if (id.includes('node_modules')) {
+                if (id.includes('vue-material-design-icons')) return 'icons'
                 if (id.includes('@nextcloud/dialogs')) return 'nextcloud-dialogs'
                 if (id.includes('@nextcloud/vue')) return 'nextcloud-vue'
                 if (id.includes('vue')) return 'vue'
