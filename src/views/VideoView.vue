@@ -214,11 +214,10 @@ export default defineComponent({
             })
 
             // Auto-play
-            player.value.ready(() => {
+            const p = player.value
+            p.ready(() => {
               console.log('Video.js ready, attempting auto-play')
-              if (player.value) {
-                player.value.play().catch((err) => console.error('Auto-play failed:', err))
-              }
+              p.play()?.catch((err) => console.error('Auto-play failed:', err))
             })
           } else {
             console.error('Video element not found')
@@ -234,9 +233,10 @@ export default defineComponent({
     watch(isPlaying, (playing) => {
       if (!player.value || isSyncing) return
       const p = player.value
-      if (playing && p.paused()) {
-        p.play().catch((err) => console.error('Video play failed:', err))
-      } else if (!playing && !p.paused()) {
+      const isPaused = p.paused()
+      if (playing && isPaused) {
+        p.play()?.catch((err) => console.error('Video play failed:', err))
+      } else if (!playing && !isPaused) {
         p.pause()
       }
     }, { flush: 'post' })
