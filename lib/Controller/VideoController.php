@@ -12,7 +12,6 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\ApiRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
-use OCP\AppFramework\Http\FileDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\OCSController;
 use OCP\Files\File;
@@ -88,24 +87,18 @@ class VideoController extends OCSController {
 	}
 
 	/**
-	 * Stream a video file for playback
+	 * Stream a video file for playback with range request support
 	 *
 	 * @param int $id Video ID
 	 *
-	 * @return FileDisplayResponse<Http::STATUS_OK, array{}>
-	 *                                                       | JSONResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
-	 *                                                       | JSONResponse<Http::STATUS_FORBIDDEN, array{message: string}, array{}>
-	 *                                                       | JSONResponse<Http::STATUS_NOT_FOUND, array{message: string}, array{}>
+	 * @return JSONResponse<Http::STATUS_UNAUTHORIZED, array{message: string}, array{}>
 	 *
-	 * 200: File response returned successfully
 	 * 401: User not authenticated
-	 * 403: Video does not belong to current user
-	 * 404: Video file or record not found
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[ApiRoute(verb: 'GET', url: '/api/video/{id}/stream')]
-	public function streamVideo(int $id): FileDisplayResponse|JSONResponse {
+	public function streamVideo(int $id) {
 		$this->logger->info('Received request to stream video with ID: ' . $id);
 
 		$user = $this->userSession->getUser();
@@ -125,7 +118,76 @@ class VideoController extends OCSController {
 				throw new NotFoundException();
 			}
 
-			return new FileDisplayResponse($file);
+			// Get file info
+			$fileSize = $file->getSize();
+			$mimeType = $file->getMimeType();
+
+			// Handle range requests for video seeking
+			$rangeHeader = $this->request->getHeader('range');
+			$start = 0;
+			$end = $fileSize - 1;
+			$statusCode = Http::STATUS_OK;
+
+			if ($rangeHeader && preg_match('/bytes=(\d+)-(\d*)/', $rangeHeader, $matches)) {
+				$start = (int)$matches[1];
+				$end = $matches[2] !== '' ? (int)$matches[2] : $end;
+				$statusCode = Http::STATUS_PARTIAL_CONTENT;
+			}
+
+			$length = $end - $start + 1;
+
+			// Clear any previous output
+			while (ob_get_level() > 0) {
+				ob_end_clean();
+			}
+
+			// Set headers for streaming
+			http_response_code($statusCode);
+			header('Content-Type: ' . $mimeType);
+			header('Content-Length: ' . $length);
+			header('Accept-Ranges: bytes');
+			header('Cache-Control: public, max-age=86400');
+			header('Content-Disposition: inline; filename="' . basename($file->getName()) . '"');
+			header('X-Content-Type-Options: nosniff');
+
+			// Add CORS headers if needed
+			header('Access-Control-Allow-Origin: *');
+			header('Access-Control-Allow-Methods: GET, OPTIONS');
+			header('Access-Control-Allow-Headers: Range, Content-Type');
+			header('Access-Control-Expose-Headers: Content-Length, Content-Range, Accept-Ranges');
+
+			if ($statusCode === Http::STATUS_PARTIAL_CONTENT) {
+				header("Content-Range: bytes $start-$end/$fileSize");
+			}
+
+			// Stream the file in chunks
+			$handle = $file->fopen('r');
+			if ($handle === false) {
+				$this->logger->error('Failed to open video file for streaming');
+				http_response_code(500);
+				exit;
+			}
+
+			if ($start > 0) {
+				fseek($handle, $start);
+			}
+
+			$remaining = $length;
+			$chunkSize = 1024 * 1024; // 1MB chunks for video
+
+			while ($remaining > 0 && !feof($handle)) {
+				$readSize = min($chunkSize, $remaining);
+				$data = fread($handle, $readSize);
+				if ($data === false) {
+					break;
+				}
+				echo $data;
+				flush();
+				$remaining -= strlen($data);
+			}
+
+			fclose($handle);
+			exit;
 		} catch (NotFoundException $e) {
 			$this->logger->error('Video file not found for ID: ' . $id, ['exception' => $e]);
 			return new JSONResponse(['message' => 'Video not found'], Http::STATUS_NOT_FOUND);

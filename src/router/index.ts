@@ -11,6 +11,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/podcasts/:id', component: () => import('@/views/PodcastView.vue') },
   // { path: '/audiobooks', component: () => import('@/views/AudiobooksView.vue') },
   { path: '/videos', component: () => import('@/views/VideosView.vue') },
+  { path: '/videos/:id', component: () => import('@/views/VideoView.vue') },
   // { path: '/genres', component: () => import('@/views/GenresView.vue') },
   { path: '/radio', component: () => import('@/views/RadioStationsView.vue') },
 ]

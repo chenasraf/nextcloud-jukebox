@@ -3011,7 +3011,7 @@
         "/ocs/v2.php/apps/jukebox/api/video/{id}/stream": {
             "get": {
                 "operationId": "video-stream-video",
-                "summary": "Stream a video file for playback",
+                "summary": "Stream a video file for playback with range request support",
                 "tags": [
                     "video"
                 ],
@@ -3035,6 +3035,13 @@
                         }
                     },
                     {
+                        "name": "range",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "OCS-APIRequest",
                         "in": "header",
                         "description": "Required to be true for the API request to pass",
@@ -3046,17 +3053,6 @@
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "File response returned successfully",
-                        "content": {
-                            "*/*": {
-                                "schema": {
-                                    "type": "string",
-                                    "format": "binary"
-                                }
-                            }
-                        }
-                    },
                     "401": {
                         "description": "User not authenticated",
                         "content": {
@@ -3096,42 +3092,6 @@
                                             }
                                         }
                                     ]
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Video does not belong to current user",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "message"
-                                    ],
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Video file or record not found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "message"
-                                    ],
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
                                 }
                             }
                         }

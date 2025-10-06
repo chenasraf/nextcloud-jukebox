@@ -21,6 +21,7 @@
 
 <script lang="ts">
   import { defineComponent, type PropType } from 'vue'
+  import { useRouter } from 'vue-router'
   import type { Video } from '@/models/media'
 
   import VideoIcon from '@icons/Video.vue'
@@ -40,8 +41,9 @@
     components: {
       VideoIcon,
     },
-    emits: ['play'],
-    setup(props, { emit }) {
+    setup(props) {
+      const router = useRouter()
+
       const formatDuration = (seconds: number): string => {
         const hours = Math.floor(seconds / 3600)
         const minutes = Math.floor((seconds % 3600) / 60)
@@ -56,7 +58,7 @@
       }
 
       const handleClick = () => {
-        emit('play', props.video)
+        router.push(`/videos/${props.video.id}`)
       }
 
       return {
