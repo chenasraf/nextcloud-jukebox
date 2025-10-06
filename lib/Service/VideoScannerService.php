@@ -109,39 +109,42 @@ class VideoScannerService {
 	}
 
 	/**
-	 * Downloads a video file, reads metadata, and processes it.
+	 * Reads metadata from a video file without copying it.
 	 *
 	 * @param File $file
 	 * @param string $uid
 	 * @return void
 	 */
 	private function processVideoFile(File $file, string $uid): void {
-		$this->logger->info('Processing video file: ' . $file->getPath());
+		$path = $file->getPath();
+		$mtime = $file->getMTime();
 
-		// TODO - don't copy file to process, process in place if possible
-		$tempPath = tempnam(sys_get_temp_dir(), 'jukebox_video_');
-		if ($tempPath === false) {
-			$this->logger->error('Could not create temporary file for video processing.');
+		// Check if video already exists in database
+		$existing = $this->videoMapper->findByUserIdAndPath($uid, $path);
+		if ($existing !== null && $existing->getMtime() === $mtime) {
+			// File hasn't been modified, skip processing
+			$this->logger->debug('Skipping unchanged video file: ' . $path);
 			return;
 		}
 
-		$stream = $file->fopen('r');
-		$handle = fopen($tempPath, 'w');
+		$this->logger->info('Processing video file: ' . $path);
 
-		if ($stream === false || $handle === false) {
-			$this->logger->error('Failed to open file stream or temp handle.');
+		// Get the actual filesystem path for local storage
+		$storage = $file->getStorage();
+		$internalPath = $file->getInternalPath();
+		$localPath = $storage->getLocalFile($internalPath);
+
+		if ($localPath === false || !file_exists($localPath)) {
+			$this->logger->error('Could not get local path for file: ' . $path);
 			return;
 		}
 
-		stream_copy_to_stream($stream, $handle);
-		fclose($stream);
-		fclose($handle);
+		$this->logger->debug('Analyzing video at local path: ' . $localPath);
 
 		$getID3 = new getID3();
-		$info = $getID3->analyze($tempPath);
-		unlink($tempPath);
+		$info = $getID3->analyze($localPath);
 
-		$this->saveMetadataToDatabase($uid, $file, $info);
+		$this->saveMetadataToDatabase($uid, $file, $info, $existing);
 	}
 
 	/**
@@ -150,19 +153,24 @@ class VideoScannerService {
 	 * @param string $userId
 	 * @param File $file
 	 * @param array $info
+	 * @param Video|null $existing
 	 * @return void
 	 */
-	private function saveMetadataToDatabase(string $userId, File $file, array $info): void {
+	private function saveMetadataToDatabase(string $userId, File $file, array $info, ?Video $existing): void {
 		try {
 			$path = $file->getPath();
 			$mtime = $file->getMTime();
 
-			$title = $info['tags']['quicktime']['title'][0]
-				?? $info['filename']
-				?? $file->getName();
+			// Extract title from metadata tags, or use filename without extension
+			$fileName = $file->getName();
+			$fileNameWithoutExt = pathinfo($fileName, PATHINFO_FILENAME);
 
-			// Check for existing
-			$existing = $this->videoMapper->findByUserIdAndPath($userId, $path);
+			$title = $info['tags']['quicktime']['title'][0]
+				?? $info['tags']['matroska']['title'][0]
+				?? $info['tags']['id3v2']['title'][0]
+				?? $fileNameWithoutExt;
+
+			// Use existing video entity or create new one
 			$video = $existing ?? new Video();
 
 			$video->setUserId($userId);
