@@ -364,12 +364,16 @@ class RadioController extends OCSController {
 		}
 
 		try {
-			$stream = @fopen($streamUrl, 'rb');
+			// Add cache-busting to the stream URL to prevent server-side caching
+			$separator = strpos($streamUrl, '?') !== false ? '&' : '?';
+			$cacheBustedUrl = $streamUrl . $separator . '_t=' . time();
+
+			$stream = @fopen($cacheBustedUrl, 'rb');
 			if (!$stream) {
 				throw new \RuntimeException('Unable to open stream');
 			}
 
-			$headers = @get_headers($streamUrl, true);
+			$headers = @get_headers($cacheBustedUrl, true);
 			$contentType = is_array($headers) && isset($headers['Content-Type'])
 				? (is_array($headers['Content-Type']) ? $headers['Content-Type'][0] : $headers['Content-Type'])
 				: 'audio/mpeg';
@@ -379,8 +383,10 @@ class RadioController extends OCSController {
 				Http::STATUS_OK,
 				[
 					'Content-Type' => $contentType,
-					'Cache-Control' => 'no-store, must-revalidate',
+					'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
 					'Pragma' => 'no-cache',
+					'Expires' => '0',
+					'X-Accel-Buffering' => 'no',
 					'Content-Transfer-Encoding' => 'binary',
 				]
 			);

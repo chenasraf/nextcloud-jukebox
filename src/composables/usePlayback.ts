@@ -65,7 +65,15 @@ function getStreamUrl(media: Playable): string {
   if (!pathResolver) {
     throw new Error(`Unsupported media type: ${media.type}`)
   }
-  return axios.defaults.baseURL + pathResolver(media)
+  const baseUrl = axios.defaults.baseURL + pathResolver(media)
+
+  // Add cache-busting for radio streams to ensure fresh content
+  if (media.type === 'radio') {
+    const separator = baseUrl.includes('?') ? '&' : '?'
+    return `${baseUrl}${separator}_t=${Date.now()}`
+  }
+
+  return baseUrl
 }
 
 function trackAction(media: Playable, action: 'play' | 'pause' | 'complete' | 'resume') {
@@ -133,7 +141,9 @@ async function playMedia(media: Playable) {
 
   const src = getStreamUrl(media)
 
-  if (audio.src !== src) {
+  // For radio streams, always reload to get fresh content
+  // For other media types, only reload if the source changed
+  if (audio.src !== src || media.type === 'radio') {
     audio.pause()
     resumePosition.value = await getStartPosition(media)
     audio.src = src
