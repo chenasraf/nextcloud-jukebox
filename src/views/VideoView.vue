@@ -161,7 +161,7 @@ export default defineComponent({
                   setTimeout(() => {
                     if (player.value) {
                       player.value.currentTime(savedTime)
-                      player.value.play().catch((err) => console.warn('Failed to resume play after reattach:', err))
+                      player.value.play()?.catch((err) => console.warn('Failed to resume play after reattach:', err))
                     }
                   }, 50)
                 }
@@ -182,7 +182,7 @@ export default defineComponent({
             // Register video player with playback composable for MediaControls integration
             if (player.value) {
               playback.registerExternalPlayer({
-                play: () => player.value!.play(),
+                play: () => player.value!.play() || Promise.resolve(),
                 pause: () => player.value!.pause(),
                 paused: () => player.value!.paused(),
               })

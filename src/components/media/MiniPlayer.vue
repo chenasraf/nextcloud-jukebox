@@ -75,7 +75,7 @@ export default defineComponent({
 
             // Register the player with playback for MediaControls integration
             playback.registerExternalPlayer({
-              play: () => player.value!.play(),
+              play: () => player.value!.play() || Promise.resolve(),
               pause: () => player.value!.pause(),
               paused: () => player.value!.paused(),
             })
@@ -89,7 +89,7 @@ export default defineComponent({
                   player.value.currentTime(currentTime)
                   // The play event listener will handle updating the playing state
                   player.value.play()
-                    .then(() => console.log('Video resumed in mini player'))
+                    ?.then(() => console.log('Video resumed in mini player'))
                     .catch((err) => console.warn('Failed to resume play in mini player:', err))
                 }
               }, 50)
