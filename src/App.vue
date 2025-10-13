@@ -67,6 +67,8 @@
         </div>
         <router-view v-else />
       </div>
+      <!-- Mini Video Player -->
+      <MiniPlayer />
       <!-- Media Player -->
       <MediaControls />
     </NcAppContent>
@@ -86,6 +88,7 @@
   import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 
   import MediaControls from '@/components/media/MediaControls.vue'
+  import MiniPlayer from '@/components/media/MiniPlayer.vue'
   import { type Track } from '@/models/media'
 
   import SkipPrevious from '@icons/SkipPrevious.vue'
@@ -115,6 +118,7 @@
       NcLoadingIcon,
       NcButton,
       MediaControls,
+      MiniPlayer,
       SkipPrevious,
       SkipNext,
       Play,

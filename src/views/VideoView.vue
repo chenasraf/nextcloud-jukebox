@@ -61,8 +61,8 @@ import Page from '@/components/Page.vue'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import playback from '@/composables/usePlayback'
+import { useVideoPlayer } from '@/composables/useVideoPlayer'
 import type { Video } from '@/models/media'
-import videojs from 'video.js'
 import type Player from 'video.js/dist/types/player'
 import 'video.js/dist/video-js.css'
 
@@ -78,9 +78,9 @@ export default defineComponent({
     const video = ref<Video | null>(null)
     const isLoading = ref(true)
     const videoElement = ref<HTMLVideoElement | null>(null)
-    const player = ref<Player | null>(null)
     const showError = ref(false)
     const { overwriteQueue, isPlaying, currentTime, setSeek, currentMedia } = playback
+    const { player, initializePlayer, isInitialized } = useVideoPlayer()
 
     const streamUrl = computed(() => {
       if (!video.value) return ''
@@ -136,89 +136,108 @@ export default defineComponent({
           // Wait for DOM to update before initializing video.js
           await nextTick()
 
-          // Initialize video.js player
+          // Initialize or reattach video.js player
           if (videoElement.value) {
             console.log('Initializing video.js player')
 
-            player.value = videojs(videoElement.value, {
-              controls: true,
-              responsive: true,
-              aspectRatio: '16:9',
-              preload: 'auto',
-              html5: {
-                vhs: {
-                  overrideNative: true,
-                },
-                nativeAudioTracks: false,
-                nativeVideoTracks: false,
-              },
-            })
+            const wasInitialized = isInitialized.value
 
-            console.log('Video.js player initialized:', player.value)
+            // If player already exists and is playing the same video, move it to this element
+            if (wasInitialized && player.value) {
+              console.log('Reattaching existing player')
 
-            // Set the source
-            player.value.src({
-              src: streamUrl.value,
-              type: videoMimeType.value,
-            })
+              // Save the playing state before moving
+              const wasPlaying = !player.value.paused()
+              const savedTime = player.value.currentTime()
 
-            console.log('Video source set:', streamUrl.value, videoMimeType.value)
+              const playerEl = player.value.el()
+              if (videoElement.value.parentNode && playerEl) {
+                videoElement.value.parentNode.replaceChild(playerEl, videoElement.value)
+                videoElement.value = playerEl.querySelector('video')
 
-            // Event listeners
-            player.value.on('play', () => {
-              console.log('Video play event')
-              if (!isPlaying.value && !isSyncing) {
-                isSyncing = true
-                playback.togglePlay()
-                setTimeout(() => { isSyncing = false }, 100)
-              }
-            })
-
-            player.value.on('pause', () => {
-              console.log('Video pause event')
-              if (isPlaying.value && !isSyncing) {
-                isSyncing = true
-                playback.togglePlay()
-                setTimeout(() => { isSyncing = false }, 100)
-              }
-            })
-
-            player.value.on('ended', () => {
-              console.log('Video ended event')
-              playback.next()
-            })
-
-            player.value.on('timeupdate', () => {
-              if (!isSyncing && player.value) {
-                const time = player.value.currentTime()
-                if (time !== undefined && Math.abs(currentTime.value - time) > 0.5) {
-                  setSeek(time)
+                // Restore playing state after move - always call play if it was playing
+                if (wasPlaying) {
+                  await nextTick()
+                  setTimeout(() => {
+                    if (player.value) {
+                      player.value.currentTime(savedTime)
+                      player.value.play().catch((err) => console.warn('Failed to resume play after reattach:', err))
+                    }
+                  }, 50)
                 }
               }
-            })
+            } else {
+              // Initialize new player
+              const newPlayer = initializePlayer(
+                videoElement.value,
+                video.value,
+                streamUrl.value,
+                videoMimeType.value
+              )
 
-            player.value.on('error', () => {
-              const error = player.value?.error()
-              console.error('Video.js error:', error)
+              console.log('Video.js player initialized:', newPlayer)
+              console.log('Video source set:', streamUrl.value, videoMimeType.value)
+            }
 
-              // Check for unsupported media errors
-              if (error && (error.code === 4 || error.code === 3)) {
-                // MEDIA_ERR_SRC_NOT_SUPPORTED (4) or MEDIA_ERR_DECODE (3)
-                console.log('Media format not supported, showing error message')
-                showError.value = true
-              }
-            })
+            // Event listeners - only add if this is a newly initialized player
+            if (!wasInitialized && player.value) {
+              player.value.on('play', () => {
+                console.log('Video play event')
+                if (!isPlaying.value && !isSyncing) {
+                  isSyncing = true
+                  playback.togglePlay()
+                  setTimeout(() => { isSyncing = false }, 100)
+                }
+              })
 
-            player.value.on('loadedmetadata', () => {
-              console.log('Video metadata loaded')
-            })
+              player.value.on('pause', () => {
+                console.log('Video pause event')
+                if (isPlaying.value && !isSyncing) {
+                  isSyncing = true
+                  playback.togglePlay()
+                  setTimeout(() => { isSyncing = false }, 100)
+                }
+              })
+
+              player.value.on('ended', () => {
+                console.log('Video ended event')
+                playback.next()
+              })
+
+              player.value.on('timeupdate', () => {
+                if (!isSyncing && player.value) {
+                  const time = player.value.currentTime()
+                  if (time !== undefined && Math.abs(currentTime.value - time) > 0.5) {
+                    setSeek(time)
+                  }
+                }
+              })
+
+              player.value.on('error', () => {
+                const error = player.value?.error()
+                console.error('Video.js error:', error)
+
+                // Check for unsupported media errors
+                if (error && (error.code === 4 || error.code === 3)) {
+                  // MEDIA_ERR_SRC_NOT_SUPPORTED (4) or MEDIA_ERR_DECODE (3)
+                  console.log('Media format not supported, showing error message')
+                  showError.value = true
+                }
+              })
+
+              player.value.on('loadedmetadata', () => {
+                console.log('Video metadata loaded')
+              })
+            }
 
             // Auto-play
-            const p = player.value
-            p.ready(() => {
-              console.log('Video.js ready, attempting auto-play')
-              p.play()?.catch((err) => console.error('Auto-play failed:', err))
-            })
+            if (player.value) {
+              const p = player.value
+              p.ready(() => {
+                console.log('Video.js ready, attempting auto-play')
+                p.play()?.catch((err) => console.error('Auto-play failed:', err))
+              })
+            }
           } else {
             console.error('Video element not found')
           }
@@ -275,11 +294,9 @@ export default defineComponent({
     }
 
     onUnmounted(() => {
-      // Dispose video.js player
-      if (player.value) {
-        player.value.dispose()
-        player.value = null
-      }
+      // Don't dispose the player when unmounting - it will be moved to the mini player
+      // The player will only be disposed when explicitly stopped via the mini player close button
+      console.log('VideoView unmounting, player will persist in mini player')
     })
 
     return {
