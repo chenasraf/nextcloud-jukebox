@@ -6,6 +6,29 @@
       <div class="duration-overlay" v-if="video.duration">
         {{ formatDuration(video.duration) }}
       </div>
+
+      <NcActions class="actions-button" @click.stop="null">
+        <NcActionButton @click.stop="handleClick">
+          <template #icon>
+            <Play :size="20" />
+          </template>
+          Play
+        </NcActionButton>
+
+        <NcActionButton @click.stop="onPlayNext">
+          <template #icon>
+            <SkipNext :size="20" />
+          </template>
+          Play Next
+        </NcActionButton>
+
+        <NcActionButton @click.stop="onAddToQueue">
+          <template #icon>
+            <PlaylistPlus :size="20" />
+          </template>
+          Add to Queue
+        </NcActionButton>
+      </NcActions>
     </div>
     <div class="metadata">
       <div class="title">{{ video.title || 'Untitled' }}</div>
@@ -23,8 +46,14 @@
   import { defineComponent, type PropType } from 'vue'
   import { useRouter } from 'vue-router'
   import type { Video } from '@/models/media'
+  import playback from '@/composables/usePlayback'
 
+  import NcActions from '@nextcloud/vue/components/NcActions'
+  import NcActionButton from '@nextcloud/vue/components/NcActionButton'
   import VideoIcon from '@icons/Video.vue'
+  import Play from '@icons/Play.vue'
+  import SkipNext from '@icons/SkipNext.vue'
+  import PlaylistPlus from '@icons/PlaylistPlus.vue'
 
   export default defineComponent({
     name: 'VideoGalleryItem',
@@ -40,6 +69,11 @@
     },
     components: {
       VideoIcon,
+      NcActions,
+      NcActionButton,
+      Play,
+      SkipNext,
+      PlaylistPlus,
     },
     setup(props) {
       const router = useRouter()
@@ -61,9 +95,19 @@
         router.push(`/videos/${props.video.id}`)
       }
 
+      const onPlayNext = () => {
+        playback.addAsNext({ type: 'video', ...props.video })
+      }
+
+      const onAddToQueue = () => {
+        playback.addToQueue({ type: 'video', ...props.video })
+      }
+
       return {
         formatDuration,
         handleClick,
+        onPlayNext,
+        onAddToQueue,
         width: props.width,
       }
     },
@@ -78,6 +122,7 @@
   flex-direction: column;
   align-items: start;
   transition: background 0.15s;
+  position: relative;
 
   &,
   & * {
@@ -120,6 +165,19 @@
       font-size: 0.75rem;
       font-weight: 500;
     }
+
+    .actions-button {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      transition: opacity 0.3s ease-in-out;
+      opacity: 0;
+      z-index: 10;
+    }
+  }
+
+  &:hover .actions-button {
+    opacity: 1;
   }
 
   .metadata {

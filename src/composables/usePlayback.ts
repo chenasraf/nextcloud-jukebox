@@ -49,6 +49,13 @@ const resumePosition = ref(0)
 let seekInProgress = false
 const suppressTimeUpdate = ref(false)
 
+// External player controller (for video.js)
+let externalPlayerController: {
+  play: () => Promise<void>
+  pause: () => void
+  paused: () => boolean
+} | null = null
+
 const currentMedia = computed(() =>
   currentIndex.value >= 0 ? queue.value[currentIndex.value] ?? null : null,
 )
@@ -139,6 +146,12 @@ async function playMedia(media: Playable) {
     currentIndex.value = queue.value.length - 1
   }
 
+  // Videos are managed by video.js, not the audio element
+  if (media.type === 'video') {
+    duration.value = typeof media.duration === 'number' ? media.duration : 0
+    return
+  }
+
   const src = getStreamUrl(media)
 
   // For radio streams, always reload to get fresh content
@@ -178,15 +191,47 @@ function prev() {
 }
 
 function pause() {
-  audio.pause()
+  if (currentMedia.value?.type === 'video' && externalPlayerController) {
+    externalPlayerController.pause()
+  } else {
+    audio.pause()
+  }
 }
 
 function togglePlay() {
-  if (audio.paused) {
-    audio.play().catch((err) => console.error('Toggle play failed:', err))
+  if (currentMedia.value?.type === 'video' && externalPlayerController) {
+    if (externalPlayerController.paused()) {
+      externalPlayerController.play().catch((err) => console.error('Toggle play failed:', err))
+    } else {
+      externalPlayerController.pause()
+    }
   } else {
-    pause()
+    if (audio.paused) {
+      audio.play().catch((err) => console.error('Toggle play failed:', err))
+    } else {
+      pause()
+    }
   }
+}
+
+function registerExternalPlayer(controller: {
+  play: () => Promise<void>
+  pause: () => void
+  paused: () => boolean
+}) {
+  externalPlayerController = controller
+  // Update isPlaying state to match the external player's current state
+  if (controller && !controller.paused()) {
+    isPlaying.value = true
+  }
+}
+
+function updatePlayingState(playing: boolean) {
+  isPlaying.value = playing
+}
+
+function unregisterExternalPlayer() {
+  externalPlayerController = null
 }
 
 function addToQueue(media: Playable | Playable[]) {
@@ -237,7 +282,16 @@ function playFromQueue(media: Playable) {
 function setSeek(newTime: number) {
   // console.log('[setSeek] Seeking to:', newTime, { currentTime: audio.currentTime, duration: audio.duration });
   seekInProgress = true
-  audio.currentTime = newTime
+
+  if (currentMedia.value?.type === 'video' && externalPlayerController) {
+    // For video, we need to seek through the video.js player
+    // Video.js doesn't have a direct currentTime setter in the controller interface
+    // so we'll update currentTime ref and let VideoView handle it
+    currentTime.value = newTime
+  } else {
+    audio.currentTime = newTime
+  }
+
   setTimeout(() => {
     suppressTimeUpdate.value = false
   }, 200) // 2–3 frames at 60fps
@@ -350,6 +404,9 @@ function usePlayback() {
     pause,
     setSeek,
     trackAction,
+    registerExternalPlayer,
+    unregisterExternalPlayer,
+    updatePlayingState,
   }
 }
 

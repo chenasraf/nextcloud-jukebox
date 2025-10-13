@@ -44,7 +44,10 @@
             <Book :size="20" />
           </template>
         </NcAppNavigationItem>
-        <NcAppNavigationItem name="Videos" :to="{ path: '/videos' }">
+        <NcAppNavigationItem
+          name="Videos"
+          :to="{ path: '/videos' }"
+          :active="isPrefixRoute('/videos')">
           <template #icon>
             <Filmstrip :size="20" />
           </template>

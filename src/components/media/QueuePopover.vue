@@ -65,6 +65,22 @@
                 </NcActionButton>
               </template>
             </RadioStationListItem>
+            <VideoListItem
+              v-else-if="media.type == 'video'"
+              :key="'video-' + media.id"
+              :video="media as unknown as Video"
+              @play="onPlay(media)"
+              disable-play-next
+              disable-add-to-queue>
+              <template #actions-end>
+                <NcActionButton @click.stop="onRemove(media)">
+                  <template #icon>
+                    <Delete :size="20" />
+                  </template>
+                  Remove from Queue
+                </NcActionButton>
+              </template>
+            </VideoListItem>
           </ul>
         </div>
         <p v-else class="empty-message">The queue is empty.</p>
@@ -79,10 +95,11 @@
   import TrackListItem from '@/components/media/TrackListItem.vue'
   import PodcastEpisodeListItem from '@/components/media/PodcastEpisodeListItem.vue'
   import RadioStationListItem from '@/components/media/RadioStationListItem.vue'
+  import VideoListItem from '@/components/media/VideoListItem.vue'
   import NcActionButton from '@nextcloud/vue/components/NcActionButton'
   import Delete from '@icons/Delete.vue'
   import playback, { toPlayable, type Playable } from '@/composables/usePlayback'
-  import type { Track, PodcastEpisode, RadioStation } from '@/models/media'
+  import type { Track, PodcastEpisode, RadioStation, Video } from '@/models/media'
 
   export default defineComponent({
     name: 'QueuePopover',
@@ -91,6 +108,7 @@
       TrackListItem,
       PodcastEpisodeListItem,
       RadioStationListItem,
+      VideoListItem,
       NcActionButton,
       Delete,
     },

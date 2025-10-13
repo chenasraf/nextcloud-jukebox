@@ -52,6 +52,7 @@ export default defineComponent({
 
     const closePlayer = () => {
       playback.pause()
+      playback.unregisterExternalPlayer()
       disposePlayer()
     }
 
@@ -64,11 +65,20 @@ export default defineComponent({
           const wasPlaying = !player.value.paused()
           const currentTime = player.value.currentTime()
 
+          console.log('Mini player appearing, wasPlaying:', wasPlaying, 'currentTime:', currentTime)
+
           // Move the video.js player to the mini player element
           const playerEl = player.value.el()
           if (miniVideoElement.value.parentNode && playerEl) {
             miniVideoElement.value.parentNode.replaceChild(playerEl, miniVideoElement.value)
             miniVideoElement.value = playerEl.querySelector('video')
+
+            // Register the player with playback for MediaControls integration
+            playback.registerExternalPlayer({
+              play: () => player.value!.play(),
+              pause: () => player.value!.pause(),
+              paused: () => player.value!.paused(),
+            })
 
             // Restore playing state after move - always call play if it was playing
             if (wasPlaying) {
@@ -77,9 +87,15 @@ export default defineComponent({
               setTimeout(() => {
                 if (player.value) {
                   player.value.currentTime(currentTime)
-                  player.value.play().catch((err) => console.warn('Failed to resume play in mini player:', err))
+                  // The play event listener will handle updating the playing state
+                  player.value.play()
+                    .then(() => console.log('Video resumed in mini player'))
+                    .catch((err) => console.warn('Failed to resume play in mini player:', err))
                 }
               }, 50)
+            } else {
+              // Update playing state to match current player state
+              playback.updatePlayingState(!player.value.paused())
             }
           }
         }

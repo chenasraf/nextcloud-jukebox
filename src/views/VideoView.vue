@@ -79,7 +79,7 @@ export default defineComponent({
     const isLoading = ref(true)
     const videoElement = ref<HTMLVideoElement | null>(null)
     const showError = ref(false)
-    const { overwriteQueue, isPlaying, currentTime, setSeek, currentMedia } = playback
+    const { overwriteQueue, isPlaying, currentTime, setSeek, currentMedia, updatePlayingState } = playback
     const { player, initializePlayer, isInitialized } = useVideoPlayer()
 
     const streamUrl = computed(() => {
@@ -179,24 +179,30 @@ export default defineComponent({
               console.log('Video source set:', streamUrl.value, videoMimeType.value)
             }
 
+            // Register video player with playback composable for MediaControls integration
+            if (player.value) {
+              playback.registerExternalPlayer({
+                play: () => player.value!.play(),
+                pause: () => player.value!.pause(),
+                paused: () => player.value!.paused(),
+              })
+
+              // Update playing state when reattaching
+              if (wasInitialized) {
+                updatePlayingState(!player.value.paused())
+              }
+            }
+
             // Event listeners - only add if this is a newly initialized player
             if (!wasInitialized && player.value) {
               player.value.on('play', () => {
                 console.log('Video play event')
-                if (!isPlaying.value && !isSyncing) {
-                  isSyncing = true
-                  playback.togglePlay()
-                  setTimeout(() => { isSyncing = false }, 100)
-                }
+                updatePlayingState(true)
               })
 
               player.value.on('pause', () => {
                 console.log('Video pause event')
-                if (isPlaying.value && !isSyncing) {
-                  isSyncing = true
-                  playback.togglePlay()
-                  setTimeout(() => { isSyncing = false }, 100)
-                }
+                updatePlayingState(false)
               })
 
               player.value.on('ended', () => {
@@ -235,7 +241,10 @@ export default defineComponent({
               const p = player.value
               p.ready(() => {
                 console.log('Video.js ready, attempting auto-play')
-                p.play()?.catch((err) => console.error('Auto-play failed:', err))
+                p.play()?.then(() => {
+                  // Ensure playing state is updated after play starts
+                  updatePlayingState(true)
+                }).catch((err) => console.error('Auto-play failed:', err))
               })
             }
           } else {
@@ -247,18 +256,6 @@ export default defineComponent({
         isLoading.value = false
       }
     })
-
-    // Sync video.js player with playback state
-    watch(isPlaying, (playing) => {
-      if (!player.value || isSyncing) return
-      const p = player.value
-      const isPaused = p.paused()
-      if (playing && isPaused) {
-        p.play()?.catch((err) => console.error('Video play failed:', err))
-      } else if (!playing && !isPaused) {
-        p.pause()
-      }
-    }, { flush: 'post' })
 
     // Sync video currentTime when seeking from external controls
     let lastExternalSeek = 0
@@ -294,8 +291,8 @@ export default defineComponent({
     }
 
     onUnmounted(() => {
-      // Don't dispose the player when unmounting - it will be moved to the mini player
-      // The player will only be disposed when explicitly stopped via the mini player close button
+      // Don't unregister or dispose the player when unmounting - it will be moved to the mini player
+      // The player registration and disposal will be handled by the mini player
       console.log('VideoView unmounting, player will persist in mini player')
     })
 
