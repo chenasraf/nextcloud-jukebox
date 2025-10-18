@@ -91,8 +91,8 @@ importers:
         specifier: ^6.3.6
         version: 6.3.6(@types/node@20.17.10)(sass-embedded@1.93.2)(sass@1.93.2)(yaml@2.8.1)
       vue-router:
-        specifier: ^4.5.1
-        version: 4.5.1(vue@3.5.22(typescript@5.9.3))
+        specifier: ^4.6.3
+        version: 4.6.3(vue@3.5.22(typescript@5.9.3))
       vue-tsc:
         specifier: ^2.2.12
         version: 2.2.12(typescript@5.9.3)
@@ -2157,8 +2157,8 @@ packages:
     resolution: {integrity: sha512-w9UMqWwJxHNOvoNzSJ2oPF5wvYcvP7jUvYzhp67yEhTi17ZDBBC1z9pTdGuzjD+EFIqLSYRweZjqfiPzQ06Ebg==}
     engines: {node: '>= 0.4'}
 
-  get-tsconfig@4.10.1:
-    resolution: {integrity: sha512-auHyJ4AgMz7vgS8Hp3N6HXSmlMdUyhSUrfBF16w153rxtLIEOE+HGqaBppczZvnHLqQJfiHotCYpNhl0lUROFQ==}
+  get-tsconfig@4.12.0:
+    resolution: {integrity: sha512-LScr2aNr2FbjAjZh2C6X6BxRx1/x+aTDExct/xyq2XKbYOiG5c0aK7pMsSuyc0brz3ibr/lbQiHD9jzt4lccJw==}
 
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
@@ -3372,6 +3372,11 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  semver@7.7.3:
+    resolution: {integrity: sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q==}
+    engines: {node: '>=10'}
+    hasBin: true
+
   set-function-length@1.2.2:
     resolution: {integrity: sha512-pgRc4hJ4/sNjWCSS9AmnS40x3bNMDTknHgL5UaMBTMyJnU90EgWh1Rz+MC9eFu4BuN/UwZjKQuY/1v3rM7HMfg==}
     engines: {node: '>= 0.4'}
@@ -3919,10 +3924,10 @@ packages:
     peerDependencies:
       vue: ^3.0.0
 
-  vue-router@4.5.1:
-    resolution: {integrity: sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==}
+  vue-router@4.6.3:
+    resolution: {integrity: sha512-ARBedLm9YlbvQomnmq91Os7ck6efydTSpRP3nuOKCvgJOHNrhRoJDSKtee8kcL1Vf7nz6U+PMBL+hTvR3bTVQg==}
     peerDependencies:
-      vue: ^3.2.0
+      vue: ^3.5.0
 
   vue-select@4.0.0-beta.6:
     resolution: {integrity: sha512-K+zrNBSpwMPhAxYLTCl56gaMrWZGgayoWCLqe5rWwkB8aUbAUh7u6sXjIR7v4ckp2WKC7zEEUY27g6h1MRsIHw==}
@@ -4453,7 +4458,7 @@ snapshots:
       eslint: 9.37.0
       fast-xml-parser: 4.5.3
       requireindex: 1.2.0
-      semver: 7.7.2
+      semver: 7.7.3
 
   '@nextcloud/event-bus@3.3.2':
     dependencies:
@@ -4586,7 +4591,7 @@ snapshots:
       unist-builder: 4.0.0
       unist-util-visit: 5.0.0
       vue: 3.5.22(typescript@5.9.3)
-      vue-router: 4.5.1(vue@3.5.22(typescript@5.9.3))
+      vue-router: 4.6.3(vue@3.5.22(typescript@5.9.3))
       vue-select: 4.0.0-beta.6(vue@3.5.22(typescript@5.9.3))
     transitivePeerDependencies:
       - '@nuxt/kit'
@@ -4978,7 +4983,7 @@ snapshots:
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.5
-      semver: 7.7.2
+      semver: 7.7.3
       ts-api-utils: 1.4.3(typescript@5.9.3)
     optionalDependencies:
       typescript: 5.9.3
@@ -5507,7 +5512,7 @@ snapshots:
 
   builtins@5.1.0:
     dependencies:
-      semver: 7.7.2
+      semver: 7.7.3
 
   byte-length@1.0.2: {}
 
@@ -5966,7 +5971,7 @@ snapshots:
   eslint-compat-utils@0.5.1(eslint@9.37.0):
     dependencies:
       eslint: 9.37.0
-      semver: 7.7.2
+      semver: 7.7.3
 
   eslint-config-standard@17.1.0(eslint-plugin-import@2.31.0)(eslint-plugin-n@16.6.2(eslint@9.37.0))(eslint-plugin-promise@6.6.0(eslint@9.37.0))(eslint@9.37.0):
     dependencies:
@@ -5997,7 +6002,7 @@ snapshots:
       eslint: 9.37.0
       eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.45.0(eslint@9.37.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.3)(eslint@9.37.0)
       fast-glob: 3.3.3
-      get-tsconfig: 4.10.1
+      get-tsconfig: 4.12.0
       is-bun-module: 1.3.0
       is-glob: 4.0.3
     optionalDependencies:
@@ -6065,7 +6070,7 @@ snapshots:
       eslint: 9.37.0
       esquery: 1.6.0
       is-builtin-module: 3.2.1
-      semver: 7.7.2
+      semver: 7.7.3
       spdx-expression-parse: 4.0.0
     transitivePeerDependencies:
       - supports-color
@@ -6076,14 +6081,14 @@ snapshots:
       builtins: 5.1.0
       eslint: 9.37.0
       eslint-plugin-es-x: 7.8.0(eslint@9.37.0)
-      get-tsconfig: 4.10.1
+      get-tsconfig: 4.12.0
       globals: 13.24.0
       ignore: 5.3.2
       is-builtin-module: 3.2.1
       is-core-module: 2.16.1
       minimatch: 3.1.2
       resolve: 1.22.10
-      semver: 7.7.2
+      semver: 7.7.3
 
   eslint-plugin-promise@6.6.0(eslint@9.37.0):
     dependencies:
@@ -6097,7 +6102,7 @@ snapshots:
       natural-compare: 1.4.0
       nth-check: 2.1.1
       postcss-selector-parser: 6.1.2
-      semver: 7.7.2
+      semver: 7.7.3
       vue-eslint-parser: 9.4.3(eslint@9.37.0)
       xml-name-validator: 4.0.0
     transitivePeerDependencies:
@@ -6356,7 +6361,7 @@ snapshots:
       es-errors: 1.3.0
       get-intrinsic: 1.3.0
 
-  get-tsconfig@4.10.1:
+  get-tsconfig@4.12.0:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
@@ -6588,7 +6593,7 @@ snapshots:
 
   is-bun-module@1.3.0:
     dependencies:
-      semver: 7.7.2
+      semver: 7.7.3
 
   is-callable@1.2.7: {}
 
@@ -7795,6 +7800,8 @@ snapshots:
 
   semver@7.7.2: {}
 
+  semver@7.7.3: {}
+
   set-function-length@1.2.2:
     dependencies:
       define-data-property: 1.1.4
@@ -8035,7 +8042,7 @@ snapshots:
   stylelint-config-recommended-vue@1.5.0(postcss-html@1.7.0)(stylelint@16.11.0(typescript@5.9.3)):
     dependencies:
       postcss-html: 1.7.0
-      semver: 7.7.2
+      semver: 7.7.3
       stylelint: 16.11.0(typescript@5.9.3)
       stylelint-config-html: 1.1.0(postcss-html@1.7.0)(stylelint@16.11.0(typescript@5.9.3))
       stylelint-config-recommended: 17.0.0(stylelint@16.11.0(typescript@5.9.3))
@@ -8431,7 +8438,7 @@ snapshots:
       espree: 9.6.1
       esquery: 1.6.0
       lodash: 4.17.21
-      semver: 7.7.2
+      semver: 7.7.3
     transitivePeerDependencies:
       - supports-color
 
@@ -8445,7 +8452,7 @@ snapshots:
     dependencies:
       vue: 3.5.22(typescript@5.9.3)
 
-  vue-router@4.5.1(vue@3.5.22(typescript@5.9.3)):
+  vue-router@4.6.3(vue@3.5.22(typescript@5.9.3)):
     dependencies:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.22(typescript@5.9.3)
